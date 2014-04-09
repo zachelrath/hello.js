@@ -428,7 +428,7 @@ hello.utils.extend( hello, {
 				// Trigger callback
 				var popup = window.open(
 					url,
-					'Authentication',
+					'_blank',
 					"resizeable=true,height=" + windowHeight + ",width=" + windowWidth + ",left=" + left + ",top="  + top
 				);
 
