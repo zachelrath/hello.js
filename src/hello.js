@@ -405,15 +405,31 @@ hello.utils.extend( hello, {
 			var windowHeight = opts.window_height || 550;
 			var windowWidth = opts.window_width || 500;
 
+			// Help the minifier
+			var documentElement = document.documentElement;
+			var screen = window.screen;
+
+			// Multi Screen Popup Positioning (http://stackoverflow.com/a/16861050)
+			//   Credit: http://www.xtf.dk/2011/08/center-new-popup-window-even-on.html
+			// Fixes dual-screen position                         Most browsers      Firefox
+			var dualScreenLeft = window.screenLeft !== undefined ? window.screenLeft : screen.left;
+			var dualScreenTop = window.screenTop !== undefined ? window.screenTop : screen.top;
+
+			var width = window.innerWidth || documentElement.clientWidth || screen.width;
+			var height = window.innerHeight || documentElement.clientHeight || screen.height;
+
+			var left = ((width - windowWidth) / 2) + dualScreenLeft;
+			var top  = ((height - windowHeight) / 2) + dualScreenTop;
+
 			// Create a function for reopening the popup, and assigning events to the new popup object
 			// This is a fix whereby triggering the
-			function open(url){
+			var open = function (url){
 
 				// Trigger callback
 				var popup = window.open(
 					url,
 					'Authentication',
-					"resizeable=true,height=" + windowHeight + ",width=" + windowWidth + ",left="+((window.innerWidth-windowWidth)/2)+",top="+((window.innerHeight-windowHeight)/2)
+					"resizeable=true,height=" + windowHeight + ",width=" + windowWidth + ",left=" + left + ",top="  + top
 				);
 
 				// PhoneGap support
@@ -473,7 +489,7 @@ hello.utils.extend( hello, {
 				});
 
 				return popup;
-			}
+			};
 
 
 			//
@@ -569,7 +585,7 @@ hello.utils.extend( hello, {
 		}
 
 		// Emit events by default
-		self.emitAfter("complete logout success auth.logout auth", true);
+		self.emitAfter("complete logout success auth.logout auth", {network:p.name});
 
 		return self;
 	},
@@ -959,24 +975,6 @@ hello.utils.extend( hello.utils, {
 	},
 
 
-	//
-	// Log
-	// [@param,..]
-	//
-	log : function(){
-
-		if(typeof arguments[0] === 'string'){
-			arguments[0] = "HelloJS-" + arguments[0];
-		}
-		if (typeof(console) === 'undefined'||typeof(console.log) === 'undefined'){ return; }
-		if (typeof console.log === 'function') {
-			console.log.apply(console, arguments); // FF, CHROME, Webkit
-		}
-		else{
-			console.log(Array.prototype.slice.call(arguments)); // IE
-		}
-	},
-
 	// isEmpty
 	isEmpty : function (obj){
 		// scalar?
@@ -1068,7 +1066,7 @@ hello.utils.extend( hello.utils, {
 			}
 
 			return this;
-		},
+		};
 
 
 		//
@@ -1085,28 +1083,31 @@ hello.utils.extend( hello.utils, {
 			});
 
 			return this;
-		},
-		
+		};
+
 		//
 		// Emit
 		// Triggers any subscribed events
 		//
-		this.emit =function(evt, data){
+		this.emit = function(evt, data){
 
 			// Get arguments as an Array, knock off the first one
 			var args = Array.prototype.slice.call(arguments, 1);
 			args.push(evt);
 
+			// Handler
+			var handler = function(name, index){
+				// Replace the last property with the event name
+				args[args.length-1] = name;
+
+				// Trigger
+				this.events[name][index].apply(this, args);
+			};
+
 			// Find the callbacks which match the condition and call
 			var proto = this;
 			while( proto && proto.findEvents ){
-				proto.findEvents(evt, function(name, index){
-					// Replace the last property with the event name
-					args[args.length-1] = name;
-
-					// Trigger
-					this.events[name][index].apply(this, args);
-				});
+				proto.findEvents(evt, handler);
 
 				// proto = this.utils.getPrototypeOf(proto);
 				proto = proto.parent;
@@ -1209,6 +1210,16 @@ hello.unsubscribe = hello.off;
 
 		// Hash of expired tokens
 		expired = {};
+
+	//
+	// Listen to other triggers to Auth events, use these to update this
+	//
+	hello.on('auth.login, auth.logout', function(auth){
+		if(auth&&typeof(auth)==='object'&&auth.network){
+			old_session[auth.network] = hello.utils.store(auth.network) || {};
+		}
+	});
+	
 
 
 	(function self(){
@@ -1690,7 +1701,7 @@ hello.api = function(){
 		if(p.method==='get'){
 			var reg = /[\?\&]([^=&]+)(=([^&]+))?/ig,
 				m;
-			while(m = reg.exec(path)){
+			while((m = reg.exec(path))){
 				p.data[m[1]] = m[3];
 			}
 			path = path.replace(/\?.*/,'');
@@ -2044,7 +2055,7 @@ hello.utils.extend( hello.utils, {
 			var r = {};
 			var reg = /([a-z\-]+):\s?(.*);?/gi,
 				m;
-			while(m = reg.exec(s)){
+			while((m = reg.exec(s))){
 				r[m[1]] = m[2];
 			}
 			return r;
@@ -2275,7 +2286,7 @@ hello.utils.extend( hello.utils, {
 				newform = form;
 			}
 
-			var input,i;
+			var input;
 
 			// Add elements to the form if they dont exist
 			for(x in data) if(data.hasOwnProperty(x)){

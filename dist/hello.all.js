@@ -223,39 +223,50 @@ hello.utils.extend( hello, {
 		// Callback
 		// Save the callback until state comes back.
 		//
-		var responded = false;
+		var resolved = false;
+
+
+		//
+		// Resolve this request for login
+		//
+		function resolve(obj){
+
+			var event_name;
+
+			if(!resolved){
+
+				resolved = true;
+
+				//
+				// Handle these response using the local
+				// Trigger on the parent
+				if(!obj.error){
+
+					//
+					event_name = "complete success login auth.login auth";
+
+					// Save on the parent window the new credentials
+					// This fixes an IE10 bug i think... atleast it does for me.
+					utils.store(obj.network,obj);
+
+					// Trigger local complete events
+					obj = {
+						network : obj.network,
+						authResponse : obj
+					};
+				}
+				else{
+					event_name = "complete error failed auth.failed";
+				}
+
+				self.emit(event_name, obj);
+			}
+		}
+
 
 		//
 		// Create a global listener to capture events triggered out of scope
-		var callback_id = utils.globalEvent(function(obj){
-
-			//
-			// Cancel the popup close listener
-			responded = true;
-
-			//
-			// Handle these response using the local
-			// Trigger on the parent
-			if(!obj.error){
-
-				// Save on the parent window the new credentials
-				// This fixes an IE10 bug i think... atleast it does for me.
-				utils.store(obj.network,obj);
-
-				// Trigger local complete events
-				self.emit("complete success login auth.login auth", {
-					network : obj.network,
-					authResponse : obj
-				});
-			}
-			else{
-				// Trigger local complete events
-				self.emit("complete error failed auth.failed", {
-					error : obj.error
-				});
-			}
-		});
-
+		var callback_id = utils.globalEvent(resolve);
 
 
 		//
@@ -394,15 +405,31 @@ hello.utils.extend( hello, {
 			var windowHeight = opts.window_height || 550;
 			var windowWidth = opts.window_width || 500;
 
+			// Help the minifier
+			var documentElement = document.documentElement;
+			var screen = window.screen;
+
+			// Multi Screen Popup Positioning (http://stackoverflow.com/a/16861050)
+			//   Credit: http://www.xtf.dk/2011/08/center-new-popup-window-even-on.html
+			// Fixes dual-screen position                         Most browsers      Firefox
+			var dualScreenLeft = window.screenLeft !== undefined ? window.screenLeft : screen.left;
+			var dualScreenTop = window.screenTop !== undefined ? window.screenTop : screen.top;
+
+			var width = window.innerWidth || documentElement.clientWidth || screen.width;
+			var height = window.innerHeight || documentElement.clientHeight || screen.height;
+
+			var left = ((width - windowWidth) / 2) + dualScreenLeft;
+			var top  = ((height - windowHeight) / 2) + dualScreenTop;
+
 			// Create a function for reopening the popup, and assigning events to the new popup object
 			// This is a fix whereby triggering the
-			function open(url){
+			var open = function (url){
 
 				// Trigger callback
 				var popup = window.open(
 					url,
 					'Authentication',
-					"resizeable=true,height=" + windowHeight + ",width=" + windowWidth + ",left="+((window.innerWidth-windowWidth)/2)+",top="+((window.innerHeight-windowHeight)/2)
+					"resizeable=true,height=" + windowHeight + ",width=" + windowWidth + ",left=" + left + ",top="  + top
 				);
 
 				// PhoneGap support
@@ -427,8 +454,12 @@ hello.utils.extend( hello, {
 								// Change the location of the popup
 								assign : function(location){
 									
-									// open a new one
+									// Unfouurtunatly an app is unable to change the location of a WebView window.
+									// Soweopen a new one
 									popup.addEventListener('exit', function(){
+										//
+										// For some reason its failing to close the window if we open a new one two soon
+										// 
 										setTimeout(function(){
 											open(location);
 										},1000);
@@ -449,7 +480,7 @@ hello.utils.extend( hello, {
 							}
 						};
 
-						// Then this URL contains information which HelloJS must process via hello.initQuery
+						// Then this URL contains information which HelloJS must process via hello.onPageLoad
 						// URL string
 						// Window - any action such as window relocation goes here
 						// Opener - the parent window which opened this, aka this script
@@ -458,7 +489,8 @@ hello.utils.extend( hello, {
 				});
 
 				return popup;
-			}
+			};
+
 
 			//
 			// Call the open() function with the initial path
@@ -485,9 +517,7 @@ hello.utils.extend( hello, {
 			var timer = setInterval(function(){
 				if(popup.closed){
 					clearInterval(timer);
-					if(!responded){
-						self.emit("complete failed error", {error:{code:"cancelled", message:"Login has been cancelled"}, network:p.network });
-					}
+					resolve({error:{code:"cancelled", message:"Login has been cancelled"}});
 				}
 			}, 100);
 		}
@@ -555,7 +585,7 @@ hello.utils.extend( hello, {
 		}
 
 		// Emit events by default
-		self.emitAfter("complete logout success auth.logout auth", true);
+		self.emitAfter("complete logout success auth.logout auth", {network:p.name});
 
 		return self;
 	},
@@ -945,24 +975,6 @@ hello.utils.extend( hello.utils, {
 	},
 
 
-	//
-	// Log
-	// [@param,..]
-	//
-	log : function(){
-
-		if(typeof arguments[0] === 'string'){
-			arguments[0] = "HelloJS-" + arguments[0];
-		}
-		if (typeof(console) === 'undefined'||typeof(console.log) === 'undefined'){ return; }
-		if (typeof console.log === 'function') {
-			console.log.apply(console, arguments); // FF, CHROME, Webkit
-		}
-		else{
-			console.log(Array.prototype.slice.call(arguments)); // IE
-		}
-	},
-
 	// isEmpty
 	isEmpty : function (obj){
 		// scalar?
@@ -1054,7 +1066,7 @@ hello.utils.extend( hello.utils, {
 			}
 
 			return this;
-		},
+		};
 
 
 		//
@@ -1071,28 +1083,31 @@ hello.utils.extend( hello.utils, {
 			});
 
 			return this;
-		},
-		
+		};
+
 		//
 		// Emit
 		// Triggers any subscribed events
 		//
-		this.emit =function(evt, data){
+		this.emit = function(evt, data){
 
 			// Get arguments as an Array, knock off the first one
 			var args = Array.prototype.slice.call(arguments, 1);
 			args.push(evt);
 
+			// Handler
+			var handler = function(name, index){
+				// Replace the last property with the event name
+				args[args.length-1] = name;
+
+				// Trigger
+				this.events[name][index].apply(this, args);
+			};
+
 			// Find the callbacks which match the condition and call
 			var proto = this;
 			while( proto && proto.findEvents ){
-				proto.findEvents(evt, function(name, index){
-					// Replace the last property with the event name
-					args[args.length-1] = name;
-
-					// Trigger
-					this.events[name][index].apply(this, args);
-				});
+				proto.findEvents(evt, handler);
 
 				// proto = this.utils.getPrototypeOf(proto);
 				proto = proto.parent;
@@ -1195,6 +1210,16 @@ hello.unsubscribe = hello.off;
 
 		// Hash of expired tokens
 		expired = {};
+
+	//
+	// Listen to other triggers to Auth events, use these to update this
+	//
+	hello.on('auth.login, auth.logout', function(auth){
+		if(auth&&typeof(auth)==='object'&&auth.network){
+			old_session[auth.network] = hello.utils.store(auth.network) || {};
+		}
+	});
+	
 
 
 	(function self(){
@@ -1676,7 +1701,7 @@ hello.api = function(){
 		if(p.method==='get'){
 			var reg = /[\?\&]([^=&]+)(=([^&]+))?/ig,
 				m;
-			while(m = reg.exec(path)){
+			while((m = reg.exec(path))){
 				p.data[m[1]] = m[3];
 			}
 			path = path.replace(/\?.*/,'');
@@ -2030,7 +2055,7 @@ hello.utils.extend( hello.utils, {
 			var r = {};
 			var reg = /([a-z\-]+):\s?(.*);?/gi,
 				m;
-			while(m = reg.exec(s)){
+			while((m = reg.exec(s))){
 				r[m[1]] = m[2];
 			}
 			return r;
@@ -2261,7 +2286,7 @@ hello.utils.extend( hello.utils, {
 				newform = form;
 			}
 
-			var input,i;
+			var input;
 
 			// Add elements to the form if they dont exist
 			for(x in data) if(data.hasOwnProperty(x)){
@@ -2802,6 +2827,12 @@ var base = 'https://graph.facebook.com/';
 hello.init({
 	facebook : {
 		name : 'Facebook',
+
+		login : function(p){
+			// The facebook login window is a different size.
+			p.options.window_width = 580;
+			p.options.window_height = 400;
+		},
 
 		// REF: http://developers.facebook.com/docs/reference/dialogs/oauth/
 		oauth : {
@@ -3420,6 +3451,12 @@ hello.init({
 		return o;
 	}
 
+	function formatPerson(o){
+		o.name = o.displayName || o.name;
+		o.picture = o.picture || ( o.image ? o.image.url : null);
+		o.thumbnail = o.picture;
+	}
+
 	function formatFriends(o){
 		paging(o);
 		var r = [];
@@ -3791,7 +3828,7 @@ hello.init({
 				events			: '',
 				photos			: 'https://picasaweb.google.com/data/',
 				videos			: 'http://gdata.youtube.com',
-				friends			: 'https://www.google.com/m8/feeds',
+				friends			: 'https://www.google.com/m8/feeds, https://www.googleapis.com/auth/plus.login',
 				files			: 'https://www.googleapis.com/auth/drive.readonly',
 				
 				publish			: '',
@@ -3811,9 +3848,10 @@ hello.init({
 				'me' : 'oauth2/v1/userinfo?alt=json',
 
 				// https://developers.google.com/+/api/latest/people/list
-				'me/friends' : contacts_url,
+				'me/friends' : 'plus/v1/people/me/people/visible?maxResults=@{limit|100}',
 				'me/following' : contacts_url,
 				'me/followers' : contacts_url,
+				'me/contacts' : contacts_url,
 				'me/share' : 'plus/v1/people/me/activities/public?maxResults=@{limit|100}',
 				'me/feed' : 'plus/v1/people/me/activities/public?maxResults=@{limit|100}',
 				'me/albums' : 'https://picasaweb.google.com/data/feed/api/user/default?alt=json&max-results=@{limit|100}&start-index=@{start|1}',
@@ -3876,13 +3914,23 @@ hello.init({
 						o.last_name = o.family_name || (o.name? o.name.familyName : null);
 						o.first_name = o.given_name || (o.name? o.name.givenName : null);
 	//						o.name = o.first_name + ' ' + o.last_name;
-						o.picture = o.picture || ( o.image ? o.image.url : null);
-						o.thumbnail = o.picture;
-						o.name = o.displayName || o.name;
+
+						formatPerson(o);
 					}
 					return o;
 				},
-				'me/friends'	: formatFriends,
+				'me/friends'	: function(o){
+					if(o.items){
+						paging(o);
+						o.data = o.items;
+						delete o.items;
+						for(var i=0;i<o.data.length;i++){
+							formatPerson(o.data[i]);
+						}
+					}
+					return o;
+				},
+				'me/contacts'	: formatFriends,
 				'me/followers'	: formatFriends,
 				'me/following'	: formatFriends,
 				'me/share' : function(o){
@@ -4499,8 +4547,15 @@ hello.init({
 function formatUser(o){
 	if(o.id){
 		var token = hello.getAuthResponse('windows').access_token;
-		o.email = (o.emails?o.emails.preferred:null);
-		o.thumbnail = o.picture = 'https://apis.live.net/v5.0/'+o.id+'/picture?access_token='+token;
+		if(o.emails){
+			o.email =  o.emails.preferred;
+		}
+		// If this is not an non-network friend
+		if(o.is_friend!==false){
+			// Use the id of the user_id if available
+			var id = (o.user_id||o.id);
+			o.thumbnail = o.picture = 'https://apis.live.net/v5.0/'+id+'/picture?access_token='+token;
+		}
 	}
 }
 
@@ -4562,6 +4617,7 @@ hello.init({
 			"me/friends" : "me/friends",
 			"me/following" : "me/contacts",
 			"me/followers" : "me/friends",
+			"me/contacts" : "me/contacts",
 
 			"me/albums"	: 'me/albums',
 
@@ -4600,6 +4656,7 @@ hello.init({
 				return o;
 			},
 			'me/friends' : formatFriends,
+			'me/contacts' : formatFriends,
 			'me/followers' : formatFriends,
 			'me/following' : formatFriends,
 			'me/albums' : function(o){
@@ -4777,3 +4834,13 @@ hello.init({
 });
 
 })(hello);
+
+//
+// AMD shim
+//
+if (typeof define === 'function' && define.amd) {
+	// AMD. Register as an anonymous module.
+	define(function(){
+		return hello;
+	});
+}
