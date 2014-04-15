@@ -820,54 +820,58 @@ var model = new (function(){
 	this.scopes = ko.observableArray([]);
 });
 
-ko.utils.arrayForEach( tests, function(test){
 
-	// Urgh, IE8 including empty prototype at end of array
-	if(!test){
-		return;
+
+function indexInit(){
+
+	ko.utils.arrayForEach( tests, function(test){
+
+		// Urgh, IE8 including empty prototype at end of array
+		if(!test){
+			return;
+		}
+		model.tests.push(new Test(test));
+
+		if(test.scope){
+			ko.utils.arrayForEach(test.scope, function(scope){
+				if(_indexOf(model.scopes(), scope)===-1){
+					model.scopes.push(scope);
+				}
+			});
+		}
+	});
+
+	if(!Object.keys){
+		Object.keys = function(o){
+			var a = [];
+			for(var x in o)if(o.hasOwnProperty(x)){
+				a.push(x);
+			}
+			return a;
+		};
 	}
-	model.tests.push(new Test(test));
 
-	if(test.scope){
-		ko.utils.arrayForEach(test.scope, function(scope){
-			if(_indexOf(model.scopes(), scope)===-1){
-				model.scopes.push(scope);
+	ko.utils.arrayForEach( Object.keys(CLIENT_IDS_ALL), function(network){
+		model.networks.push(new Provider(network));
+	});
+
+
+	// Subscribe to the authentication
+	hello.on('auth.login', function(o){
+		ko.utils.arrayForEach( model.networks(), function(network){
+			if(o.network===network.name){
+				network.online(true);
 			}
 		});
-	}
-});
+	}).on('auth.expired auth.logout', function(o){
+		ko.utils.arrayForEach( model.networks(), function(network){
+			if(o.network===network.name){
+				network.online(false);
+			}
+		});
+	});
 
-if(!Object.keys){
-	Object.keys = function(o){
-		var a = [];
-		for(var x in o)if(o.hasOwnProperty(x)){
-			a.push(x);
-		}
-		return a;
-	};
 }
-
-ko.utils.arrayForEach( Object.keys(CLIENT_IDS_ALL), function(network){
-	model.networks.push(new Provider(network));
-});
-
-
-// Subscribe to the authentication
-hello.on('auth.login', function(o){
-	ko.utils.arrayForEach( model.networks(), function(network){
-		if(o.network===network.name){
-			network.online(true);
-		}
-	});
-}).on('auth.expired auth.logout', function(o){
-	ko.utils.arrayForEach( model.networks(), function(network){
-		if(o.network===network.name){
-			network.online(false);
-		}
-	});
-});
-
-
 
 //
 // Bind beautifier handler

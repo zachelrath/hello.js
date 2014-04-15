@@ -6,12 +6,59 @@
  * @author Andrew Dodson
  * @company Knarly
  *
- * @copyright Andrew Dodson, 2012 - 2013
+ * @copyright Andrew Dodson, 2012 - 2014
  * @license MIT: You are free to use and modify this code for any use, on the condition that this copyright notice remains.
  */
 
 // Can't use strict with arguments.callee
 //"use strict";
+
+
+define([
+	'utils/append',
+	'utils/args',
+	'utils/clone',
+	'utils/dataToJSON',
+	'utils/diff',
+	'utils/event',
+	'utils/extend',
+	'utils/globalEvent',
+	'utils/hasBinary',
+	'utils/isEmpty',
+	'utils/jsonp',
+	'utils/merge',
+	'utils/objectCreate',
+	'utils/param',
+	'utils/post',
+	'utils/qs',
+	'utils/realPath',
+	'utils/store',
+	'utils/unique',
+	'utils/xhr'
+],function(
+
+	append,
+	args,
+	clone,
+	dataToJSON,
+	diff,
+	Event,
+	extend,
+	globalEvent,
+	hasBinary,
+	isEmpty,
+	jsonp,
+	merge,
+	objectCreate,
+	param,
+	post,
+	qs,
+	realPath,
+	store,
+	unique,
+	xhr
+
+){
 
 
 //
@@ -20,17 +67,6 @@
 
 var hello = function(name){
 	return hello.use(name);
-};
-
-
-hello.utils = {
-	//
-	// Extend the first object with the properties and methods of the second
-	extend : function(a,b){
-		for(var x in b){
-			a[x] = b[x];
-		}
-	}
 };
 
 
@@ -45,7 +81,7 @@ hello.utils = {
 // getAuthRequest
 /////////////////////////////////////////////////
 
-hello.utils.extend( hello, {
+extend( hello, {
 
 	//
 	// Options
@@ -85,12 +121,12 @@ hello.utils.extend( hello, {
 	//
 	service : function(service){
 
-		//this.utils.warn("`hello.service` is deprecated");
+		//this.warn("`hello.service` is deprecated");
 
 		if(typeof (service) !== 'undefined' ){
-			return this.utils.store( 'sync_service', service );
+			return store( 'sync_service', service );
 		}
-		return this.utils.store( 'sync_service' );
+		return store( 'sync_service' );
 	},
 
 
@@ -106,10 +142,10 @@ hello.utils.extend( hello, {
 	use : function(service){
 
 		// Create self, which inherits from its parent
-		var self = this.utils.objectCreate(this);
+		var self = objectCreate(this);
 
 		// Inherit the prototype from its parent
-		self.settings = this.utils.objectCreate(this.settings);
+		self.settings = objectCreate(this.settings);
 
 		// Define the default service
 		if(service){
@@ -117,7 +153,7 @@ hello.utils.extend( hello, {
 		}
 
 		// Create an instance of Events
-		self.utils.Event.call(self);
+		Event.call(self);
 
 		return self;
 	},
@@ -131,8 +167,6 @@ hello.utils.extend( hello, {
 	// @param number timeout, timeout in seconds
 	//
 	init : function(services,options){
-
-		var utils = this.utils;
 
 		if(!services){
 			return this.services;
@@ -148,7 +182,7 @@ hello.utils.extend( hello, {
 
 		//
 		// merge services if there already exists some
-		this.services = utils.merge(this.services, services);
+		this.services = merge(this.services, services);
 
 		//
 		// Format the incoming
@@ -159,11 +193,11 @@ hello.utils.extend( hello, {
 		//
 		// Update the default settings with this one.
 		if(options){
-			this.settings = utils.merge(this.settings, options);
+			this.settings = merge(this.settings, options);
 
 			// Do this immediatly incase the browser changes the current path.
 			if("redirect_uri" in options){
-				this.settings.redirect_uri = utils.realPath(options.redirect_uri);
+				this.settings.redirect_uri = realPath(options.redirect_uri);
 			}
 		}
 
@@ -183,11 +217,10 @@ hello.utils.extend( hello, {
 		// Create self
 		// An object which inherits its parent as the prototype.
 		// And constructs a new event chain.
-		var self = this.use(),
-			utils = self.utils;
+		var self = this.use();
 
 		// Get parameters
-		var p = utils.args({network:'s', options:'o', callback:'f'}, arguments);
+		var p = args({network:'s', options:'o', callback:'f'}, arguments);
 
 		// Apply the args
 		self.args = p;
@@ -196,7 +229,7 @@ hello.utils.extend( hello, {
 		var url;
 
 		// merge/override options with app defaults
-		var opts = p.options = utils.merge(self.settings, p.options || {} );
+		var opts = p.options = merge(self.settings, p.options || {} );
 
 		// Network
 		p.network = self.settings.default_service = p.network || self.settings.default_service;
@@ -227,7 +260,7 @@ hello.utils.extend( hello, {
 
 		//
 		// Create a global listener to capture events triggered out of scope
-		var callback_id = utils.globalEvent(function(obj){
+		var callback_id = globalEvent(function(obj){
 
 			//
 			// Cancel the popup close listener
@@ -240,7 +273,7 @@ hello.utils.extend( hello, {
 
 				// Save on the parent window the new credentials
 				// This fixes an IE10 bug i think... atleast it does for me.
-				utils.store(obj.network,obj);
+				store(obj.network,obj);
 
 				// Trigger local complete events
 				self.emit("complete success login auth.login auth", {
@@ -281,7 +314,7 @@ hello.utils.extend( hello, {
 		//
 		// SESSION
 		// Get current session for merging scopes, and for quick auth response
-		var session = utils.store(p.network);
+		var session = store(p.network);
 
 		//
 		// SCOPES
@@ -300,7 +333,7 @@ hello.utils.extend( hello, {
 			scope += ","+session.scope.join(",");
 		}
 		// Save in the State
-		p.qs.state.scope = utils.unique( scope.split(/[,\s]+/) );
+		p.qs.state.scope = unique( scope.split(/[,\s]+/) );
 
 		// Map replace each scope with the providers default scopes
 		p.qs.scope = scope.replace(/[^,\s]+/ig, function(m){
@@ -308,7 +341,7 @@ hello.utils.extend( hello, {
 		}).replace(/[,\s]+/ig, ',');
 
 		// remove duplication and empty spaces
-		p.qs.scope = utils.unique(p.qs.scope.split(/,+/)).join( provider.scope_delim || ',');
+		p.qs.scope = unique(p.qs.scope.split(/,+/)).join( provider.scope_delim || ',');
 
 
 
@@ -321,8 +354,8 @@ hello.utils.extend( hello, {
 
 			if( session && "access_token" in session && session.access_token && "expires" in session && session.expires > ((new Date()).getTime()/1e3) ){
 				// What is different about the scopes in the session vs the scopes in the new login?
-				var diff = utils.diff( session.scope || [], p.qs.state.scope || [] );
-				if(diff.length===0){
+				var _diff = diff( session.scope || [], p.qs.state.scope || [] );
+				if(_diff.length===0){
 
 					// Nothing has changed
 					self.emit("notice", "User already has a valid access_token");
@@ -343,7 +376,7 @@ hello.utils.extend( hello, {
 		// REDIRECT_URI
 		// Is the redirect_uri root?
 		//
-		p.qs.redirect_uri = utils.realPath(p.qs.redirect_uri);
+		p.qs.redirect_uri = realPath(p.qs.redirect_uri);
 
 		// Add OAuth to state
 		if(provider.oauth){
@@ -368,10 +401,10 @@ hello.utils.extend( hello, {
 		//
 		if( parseInt(provider.oauth.version,10) === 1 ){
 			// Turn the request to the OAuth Proxy for 3-legged auth
-			url = utils.qs( opts.oauth_proxy, p.qs );
+			url = qs( opts.oauth_proxy, p.qs );
 		}
 		else{
-			url = utils.qs( provider.oauth.auth, p.qs );
+			url = qs( provider.oauth.auth, p.qs );
 		}
 
 		self.emit("notice", "Authorization URL " + url );
@@ -384,7 +417,7 @@ hello.utils.extend( hello, {
 		//
 		if( opts.display === 'none' ){
 			// signin in the background, iframe
-			utils.append('iframe', { src : url, style : {position:'absolute',left:"-1000px",bottom:0,height:'1px',width:'1px'} }, 'body');
+			append('iframe', { src : url, style : {position:'absolute',left:"-1000px",bottom:0,height:'1px',width:'1px'} }, 'body');
 		}
 
 
@@ -454,7 +487,7 @@ hello.utils.extend( hello, {
 	//
 	logout : function(s, callback){
 
-		var p = this.utils.args({name:'s', callback:"f" }, arguments);
+		var p = args({name:'s', callback:"f" }, arguments);
 
 		// Create self
 		// An object which inherits its parent as the prototype.
@@ -474,7 +507,7 @@ hello.utils.extend( hello, {
 			}});
 			return self;
 		}
-		if(p.name && self.utils.store(p.name)){
+		if(p.name && store(p.name)){
 
 			// Trigger a logout callback on the provider
 			if(typeof(self.services[p.name].logout) === 'function'){
@@ -482,7 +515,7 @@ hello.utils.extend( hello, {
 			}
 
 			// Remove from the store
-			self.utils.store(p.name,'');
+			store(p.name,'');
 		}
 		else if(!p.name){
 			for(var x in self.services){if(self.services.hasOwnProperty(x)){
@@ -526,7 +559,7 @@ hello.utils.extend( hello, {
 			return null;
 		}
 
-		return this.utils.store(service) || null;
+		return store(service) || null;
 	},
 
 
@@ -539,575 +572,12 @@ hello.utils.extend( hello, {
 
 
 
-
-
-
-///////////////////////////////////
-// Core Utilities
-///////////////////////////////////
-
-hello.utils.extend( hello.utils, {
-
-	// Append the querystring to a url
-	// @param string url
-	// @param object parameters
-	qs : function(url, params){
-		if(params){
-			var reg;
-			for(var x in params){
-				if(url.indexOf(x)>-1){
-					var str = "[\\?\\&]"+x+"=[^\\&]*";
-					reg = new RegExp(str);
-					url = url.replace(reg,'');
-				}
-			}
-		}
-		return url + (!this.isEmpty(params) ? ( url.indexOf('?') > -1 ? "&" : "?" ) + this.param(params) : '');
-	},
-	
-
-	//
-	// Param
-	// Explode/Encode the parameters of an URL string/object
-	// @param string s, String to decode
-	//
-	param : function(s){
-		var b,
-			a = {},
-			m;
-		
-		if(typeof(s)==='string'){
-
-			m = s.replace(/^[\#\?]/,'').match(/([^=\/\&]+)=([^\&]+)/g);
-			if(m){
-				for(var i=0;i<m.length;i++){
-					b = m[i].match(/([^=]+)=(.*)/);
-					a[b[1]] = decodeURIComponent( b[2] );
-				}
-			}
-			return a;
-		}
-		else {
-			var o = s;
-		
-			a = [];
-
-			for( var x in o ){if(o.hasOwnProperty(x)){
-				if( o.hasOwnProperty(x) ){
-					a.push( [x, o[x] === '?' ? '?' : encodeURIComponent(o[x]) ].join('=') );
-				}
-			}}
-
-			return a.join('&');
-		}
-	},
-	
-
-	//
-	// Local Storage Facade
-	store : (function(localStorage){
-
-		//
-		// LocalStorage
-		var a = [localStorage,window.sessionStorage],
-			i=0;
-
-		// Set LocalStorage
-		localStorage = a[i++];
-
-		while(localStorage){
-			try{
-				localStorage.setItem(i,i);
-				localStorage.removeItem(i);
-				break;
-			}
-			catch(e){
-				localStorage = a[i++];
-			}
-		}
-
-		if(!localStorage){
-			localStorage = {
-				getItem : function(prop){
-					prop = prop +'=';
-					var m = document.cookie.split(";");
-					for(var i=0;i<m.length;i++){
-						var _m = m[i].replace(/(^\s+|\s+$)/,'');
-						if(_m && _m.indexOf(prop)===0){
-							return _m.substr(prop.length);
-						}
-					}
-					return null;
-				},
-				setItem : function(prop, value){
-					document.cookie = prop + '=' + value;
-				}
-			};
-		}
-
-		// Does this browser support localStorage?
-
-		return function (name,value,days) {
-
-			// Local storage
-			var json = JSON.parse(localStorage.getItem('hello')) || {};
-
-			if(name && typeof(value) === 'undefined'){
-				return json[name];
-			}
-			else if(name && value === ''){
-				try{
-					delete json[name];
-				}
-				catch(e){
-					json[name]=null;
-				}
-			}
-			else if(name){
-				json[name] = value;
-			}
-			else {
-				return json;
-			}
-
-			localStorage.setItem('hello', JSON.stringify(json));
-
-			return json;
-		};
-
-	})(window.localStorage),
-
-	//
-	// Create and Append new Dom elements
-	// @param node string
-	// @param attr object literal
-	// @param dom/string
-	//
-	append : function(node,attr,target){
-
-		var n = typeof(node)==='string' ? document.createElement(node) : node;
-
-		if(typeof(attr)==='object' ){
-			if( "tagName" in attr ){
-				target = attr;
-			}
-			else{
-				for(var x in attr){if(attr.hasOwnProperty(x)){
-					if(typeof(attr[x])==='object'){
-						for(var y in attr[x]){if(attr[x].hasOwnProperty(y)){
-							n[x][y] = attr[x][y];
-						}}
-					}
-					else if(x==="html"){
-						n.innerHTML = attr[x];
-					}
-					// IE doesn't like us setting methods with setAttribute
-					else if(!/^on/.test(x)){
-						n.setAttribute( x, attr[x]);
-					}
-					else{
-						n[x] = attr[x];
-					}
-				}}
-			}
-		}
-		
-		if(target==='body'){
-			(function self(){
-				if(document.body){
-					document.body.appendChild(n);
-				}
-				else{
-					setTimeout( self, 16 );
-				}
-			})();
-		}
-		else if(typeof(target)==='object'){
-			target.appendChild(n);
-		}
-		else if(typeof(target)==='string'){
-			document.getElementsByTagName(target)[0].appendChild(n);
-		}
-		return n;
-	},
-
-	//
-	// merge
-	// recursive merge two objects into one, second parameter overides the first
-	// @param a array
-	//
-	merge : function(a,b){
-		var x,r = {};
-		if( typeof(a) === 'object' && typeof(b) === 'object' ){
-			for(x in a){
-				//if(a.hasOwnProperty(x)){
-				r[x] = a[x];
-				if(x in b){
-					r[x] = this.merge( a[x], b[x]);
-				}
-				//}
-			}
-			for(x in b){
-				//if(b.hasOwnProperty(x)){
-				if(!(x in a)){
-					r[x] = b[x];
-				}
-				//}
-			}
-		}
-		else{
-			r = b;
-		}
-		return r;
-	},
-
-	//
-	// Args utility
-	// Makes it easier to assign parameters, where some are optional
-	// @param o object
-	// @param a arguments
-	//
-	args : function(o,args){
-
-		var p = {},
-			i = 0,
-			t = null,
-			x = null;
-		
-		// define x
-		// x is the first key in the list of object parameters
-		for(x in o){if(o.hasOwnProperty(x)){
-			break;
-		}}
-
-		// Passing in hash object of arguments?
-		// Where the first argument can't be an object
-		if((args.length===1)&&(typeof(args[0])==='object')&&o[x]!='o!'){
-
-			// Could this object still belong to a property?
-			// Check the object keys if they match any of the property keys
-			for(x in args[0]){if(o.hasOwnProperty(x)){
-				// Does this key exist in the property list?
-				if( x in o ){
-					// Yes this key does exist so its most likely this function has been invoked with an object parameter
-					// return first argument as the hash of all arguments
-					return args[0];
-				}
-			}}
-		}
-
-		// else loop through and account for the missing ones.
-		for(x in o){if(o.hasOwnProperty(x)){
-
-			t = typeof( args[i] );
-
-			if( ( typeof( o[x] ) === 'function' && o[x].test(args[i]) ) || ( typeof( o[x] ) === 'string' && (
-					( o[x].indexOf('s')>-1 && t === 'string' ) ||
-					( o[x].indexOf('o')>-1 && t === 'object' ) ||
-					( o[x].indexOf('i')>-1 && t === 'number' ) ||
-					( o[x].indexOf('a')>-1 && t === 'object' ) ||
-					( o[x].indexOf('f')>-1 && t === 'function' )
-				) )
-			){
-				p[x] = args[i++];
-			}
-			
-			else if( typeof( o[x] ) === 'string' && o[x].indexOf('!')>-1 ){
-				// ("Whoops! " + x + " not defined");
-				return false;
-			}
-		}}
-		return p;
-	},
-
-	//
-	// realPath
-	// Converts relative URL's to fully qualified URL's
-	realPath : function(path){
-
-		var location = window.location;
-
-		if( path.indexOf('/') === 0 ){
-			path = location.protocol + '//' + location.host + path;
-		}
-		// Is the redirect_uri relative?
-		else if( !path.match(/^https?\:\/\//) ){
-			path = (location.href.replace(/#.*/,'').replace(/\/[^\/]+$/,'/') + path).replace(/\/\.\//g,'/');
-		}
-		while( /\/[^\/]+\/\.\.\//g.test(path) ){
-			path = path.replace(/\/[^\/]+\/\.\.\//g, '/');
-		}
-		return path;
-	},
-
-	//
-	// diff
-	diff : function(a,b){
-		var r = [];
-		for(var i=0;i<b.length;i++){
-			if(this.indexOf(a,b[i])===-1){
-				r.push(b[i]);
-			}
-		}
-		return r;
-	},
-
-	//
-	// indexOf
-	// IE hack Array.indexOf doesn't exist prior to IE9
-	indexOf : function(a,s){
-		// Do we need the hack?
-		if(a.indexOf){
-			return a.indexOf(s);
-		}
-
-		for(var j=0;j<a.length;j++){
-			if(a[j]===s){
-				return j;
-			}
-		}
-		return -1;
-	},
-
-
-	//
-	// unique
-	// remove duplicate and null values from an array
-	// @param a array
-	//
-	unique : function(a){
-		if(typeof(a)!=='object'){ return []; }
-		var r = [];
-		for(var i=0;i<a.length;i++){
-
-			if(!a[i]||a[i].length===0||this.indexOf(r, a[i])!==-1){
-				continue;
-			}
-			else{
-				r.push(a[i]);
-			}
-		}
-		return r;
-	},
-
-
-	// isEmpty
-	isEmpty : function (obj){
-		// scalar?
-		if(!obj){
-			return true;
-		}
-
-		// Array?
-		if(obj && obj.length>0) return false;
-		if(obj && obj.length===0) return true;
-
-		// object?
-		for (var key in obj) {
-			if (obj.hasOwnProperty(key)){
-				return false;
-			}
-		}
-		return true;
-	},
-
-	// Shim, Object create
-	// A shim for Object.create(), it adds a prototype to a new object
-	objectCreate : (function(){
-		if (Object.create) {
-			return Object.create;
-		}
-		function F(){}
-		return function(o){
-			if (arguments.length != 1) {
-				throw new Error('Object.create implementation only accepts one parameter.');
-			}
-			F.prototype = o;
-			return new F();
-		};
-	})(),
-
-	/*
-	//
-	// getProtoTypeOf
-	// Once all browsers catchup we can access the prototype
-	// Currently: manually define prototype object in the `parent` attribute
-	getPrototypeOf : (function(){
-		if(Object.getPrototypeOf){
-			return Object.getPrototypeOf;
-		}
-		else if(({}).__proto__){
-			return function(obj){
-				return obj.__proto__;
-			};
-		}
-		return function(obj){
-			if(obj.prototype && obj !== obj.prototype.constructor){
-				return obj.prototype.constructor;
-			}
-		};
-	})(),
-	*/
-	//
-	// Event
-	// A contructor superclass for adding event menthods, on, off, emit.
-	//
-	Event : function(){
-
-		// If this doesn't support getProtoType then we can't get prototype.events of the parent
-		// So lets get the current instance events, and add those to a parent property
-		this.parent = {
-			events : this.events,
-			findEvents : this.findEvents,
-			parent : this.parent,
-			utils : this.utils
-		};
-
-		this.events = {};
-
-		//
-		// On, Subscribe to events
-		// @param evt		string
-		// @param callback	function
-		//
-		this.on = function(evt, callback){
-
-			if(callback&&typeof(callback)==='function'){
-				var a = evt.split(/[\s\,]+/);
-				for(var i=0;i<a.length;i++){
-
-					// Has this event already been fired on this instance?
-					this.events[a[i]] = [callback].concat(this.events[a[i]]||[]);
-				}
-			}
-
-			return this;
-		};
-
-
-		//
-		// Off, Unsubscribe to events
-		// @param evt		string
-		// @param callback	function
-		//
-		this.off = function(evt, callback){
-
-			this.findEvents(evt, function(name, index){
-				if(!callback || this.events[name][index] === callback){
-					this.events[name].splice(index,1);
-				}
-			});
-
-			return this;
-		};
-
-		//
-		// Emit
-		// Triggers any subscribed events
-		//
-		this.emit = function(evt, data){
-
-			// Get arguments as an Array, knock off the first one
-			var args = Array.prototype.slice.call(arguments, 1);
-			args.push(evt);
-
-			// Handler
-			var handler = function(name, index){
-				// Replace the last property with the event name
-				args[args.length-1] = name;
-
-				// Trigger
-				this.events[name][index].apply(this, args);
-			};
-
-			// Find the callbacks which match the condition and call
-			var proto = this;
-			while( proto && proto.findEvents ){
-				proto.findEvents(evt, handler);
-
-				// proto = this.utils.getPrototypeOf(proto);
-				proto = proto.parent;
-			}
-
-			return this;
-		};
-
-		//
-		// Easy functions
-		this.emitAfter = function(){
-			var self = this,
-				args = arguments;
-			setTimeout(function(){
-				self.emit.apply(self, args);
-			},0);
-			return this;
-		};
-		this.success = function(callback){
-			return this.on("success",callback);
-		};
-		this.error = function(callback){
-			return this.on("error",callback);
-		};
-		this.complete = function(callback){
-			return this.on("complete",callback);
-		};
-
-
-		this.findEvents = function(evt, callback){
-
-			var a = evt.split(/[\s\,]+/);
-
-			for(var name in this.events){if(this.events.hasOwnProperty(name)){
-				if( this.utils.indexOf(a,name) > -1 ){
-					for(var i=0;i<this.events[name].length;i++){
-						// Emit on the local instance of this
-						callback.call(this, name, i);
-					}
-				}
-			}}
-		};
-	},
-
-
-	//
-	// Global Events
-	// Attach the callback to the window object
-	// Return its unique reference
-	globalEvent : function(callback, guid){
-		// If the guid has not been supplied then create a new one.
-		guid = guid || "_hellojs_"+parseInt(Math.random()*1e12,10).toString(36);
-
-		// Define the callback function
-		window[guid] = function(){
-			// Trigger the callback
-			var bool = callback.apply(this, arguments);
-
-			if(bool){
-				// Remove this handler reference
-				try{
-					delete window[guid];
-				}catch(e){}
-			}
-		};
-		return guid;
-	}
-
-});
-
-
 //////////////////////////////////
 // Events
 //////////////////////////////////
 
 // Extend the hello object with its own event instance
-hello.utils.Event.call(hello);
-
-
-// Shimming old deprecated functions
-hello.subscribe = hello.on;
-hello.trigger = hello.emit;
-hello.unsubscribe = hello.off;
-
+Event.call(hello);
 
 
 
@@ -1129,7 +599,7 @@ hello.unsubscribe = hello.off;
 	//
 	hello.on('auth.login, auth.logout', function(auth){
 		if(auth&&typeof(auth)==='object'&&auth.network){
-			old_session[auth.network] = hello.utils.store(auth.network) || {};
+			old_session[auth.network] = store(auth.network) || {};
 		}
 	});
 	
@@ -1154,12 +624,12 @@ hello.unsubscribe = hello.off;
 			}
 		
 			// Get session
-			var session = hello.utils.store(name) || {};
+			var session = store(name) || {};
 			var provider = hello.services[name];
 			var oldsess = old_session[name] || {};
 
 			//
-			// Listen for globalEvents that did not get triggered from the child
+			// Listen for globalEvent's that did not get triggered from the child
 			//
 			if(session && "callback" in session){
 
@@ -1171,7 +641,7 @@ hello.unsubscribe = hello.off;
 
 				// Update store
 				// Removing the callback
-				hello.utils.store(name,session);
+				store(name,session);
 
 				// Emit global events
 				try{
@@ -1256,11 +726,10 @@ hello.unsubscribe = hello.off;
 
 (function(hello, window){
 
-	var utils = hello.utils,
-		location = window.location;
+	var location = window.location;
 
 	var debug = function(msg,e){
-		utils.append("p", {text:msg}, document.documentElement);
+		append("p", {text:msg}, document.documentElement);
 		if(e){
 			console.log(e);
 		}
@@ -1273,7 +742,7 @@ hello.unsubscribe = hello.off;
 	function authCallback(network, obj){
 
 		// Trigger the callback on the parent
-		utils.store(obj.network, obj );
+		store(obj.network, obj );
 
 		// this is a popup so
 		if( !("display" in p) || p.display !== 'page'){
@@ -1293,7 +762,7 @@ hello.unsubscribe = hello.off;
 				}catch(e){}
 
 				// Update store
-				utils.store(obj.network,obj);
+				store(obj.network,obj);
 
 				// Call the globalEvent function on the parent
 				if(cb in win){
@@ -1337,7 +806,7 @@ hello.unsubscribe = hello.off;
 	// FACEBOOK is returning auth errors within as a query_string... thats a stickler for consistency.
 	// SoundCloud is the state in the querystring and the token in the hashtag, so we'll mix the two together
 	
-	var p = utils.merge(utils.param(location.search||''), utils.param(location.hash||''));
+	var p = merge(param(location.search||''), param(location.hash||''));
 
 	
 	// if p.state
@@ -1347,7 +816,7 @@ hello.unsubscribe = hello.off;
 		// e.g. p.state = 'facebook.page';
 		try{
 			var a = JSON.parse(p.state);
-			p = utils.merge(p, a);
+			p = merge(p, a);
 		}catch(e){
 			debug("Could not decode state parameter");
 		}
@@ -1403,7 +872,7 @@ hello.unsubscribe = hello.off;
 	}
 
 	// redefine
-	p = utils.param(location.search);
+	p = param(location.search);
 
 	// IS THIS AN OAUTH2 SERVER RESPONSE? OR AN OAUTH1 SERVER RESPONSE?
 	if((p.code&&p.state) || (p.oauth_token&&p.proxy_url)){
@@ -1412,7 +881,7 @@ hello.unsubscribe = hello.off;
 		// JSON decode
 		var state = JSON.parse(p.state);
 		// redirect to the host
-		var path = (state.oauth_proxy || p.proxy_url) + "?" + utils.param(p);
+		var path = (state.oauth_proxy || p.proxy_url) + "?" + param(p);
 
 		window.location = path;
 	}
@@ -1441,13 +910,19 @@ hello.unsubscribe = hello.off;
 hello.api = function(){
 
 	// get arguments
-	var p = this.utils.args({path:'s!', method : "s", data:'o', timeout:'i', callback:"f" }, arguments);
+	var p = args({path:'s!', method : "s", data:'o', timeout:'i', callback:"f" }, arguments);
 
 	// Create self
 	// An object which inherits its parent as the prototype.
 	// And constructs a new event chain.
-	var self = this.use(),
-		utils = self.utils;
+	var self = this.use();
+
+	//
+	// EXTRA: Convert FORMElements to JSON for POSTING
+	// Wrappers to add additional functionality to existing functions
+	//
+	// Change for into a data object
+	dataToJSON(p);
 
 
 	// Reference arguments
@@ -1578,7 +1053,7 @@ hello.api = function(){
 		// Clone the data object
 		// Prevent this script overwriting the data of the incoming object.
 		// ensure that everytime we run an iteration the callbacks haven't removed some data
-		p.data = utils.clone(data);
+		p.data = clone(data);
 
 
 		// Extrapolate the QueryString
@@ -1626,7 +1101,7 @@ hello.api = function(){
 			}
 
 
-			var qs = {};
+			var _qs = {};
 
 			// Format URL
 			var format_url = function( qs_handler, callback ){
@@ -1634,14 +1109,14 @@ hello.api = function(){
 				// Execute the qs_handler for any additional parameters
 				if(qs_handler){
 					if(typeof(qs_handler)==='function'){
-						qs_handler(qs);
+						qs_handler(_qs);
 					}
 					else{
-						qs = utils.merge(qs, qs_handler);
+						_qs = merge(_qs, qs_handler);
 					}
 				}
 
-				var path = utils.qs(url, qs||{} );
+				var path = qs(url, _qs||{} );
 
 				self.emit("notice", "Request " + path);
 
@@ -1653,9 +1128,9 @@ hello.api = function(){
 			//url += ( url.indexOf('?') > -1 ? "&" : "?" );
 
 			// Format the data
-			if( !utils.isEmpty(p.data) && !("FileList" in window) && utils.hasBinary(p.data) ){
+			if( !isEmpty(p.data) && !("FileList" in window) && hasBinary(p.data) ){
 				// If we can't format the post then, we are going to run the iFrame hack
-				utils.post( format_url, p.data, ("form" in o ? o.form(p) : null), callback );
+				post( format_url, p.data, ("form" in o ? o.form(p) : null), callback );
 
 				return self;
 			}
@@ -1664,13 +1139,13 @@ hello.api = function(){
 			if(p.method === 'delete'){
 				var _callback = callback;
 				callback = function(r, code){
-					_callback((!r||utils.isEmpty(r))? {success:true} : r, code);
+					_callback((!r||isEmpty(r))? {success:true} : r, code);
 				};
 			}
 
 			// Can we use XHR for Cross domain delivery?
-			if( 'withCredentials' in new XMLHttpRequest() && ( !("xhr" in o) || ( o.xhr && o.xhr(p,qs) ) ) ){
-				var x = utils.xhr( p.method, format_url, p.headers, p.data, callback );
+			if( 'withCredentials' in new XMLHttpRequest() && ( !("xhr" in o) || ( o.xhr && o.xhr(p,_qs) ) ) ){
+				var x = xhr( p.method, format_url, p.headers, p.data, callback );
 				x.onprogress = function(e){
 					self.emit("progress", e);
 				};
@@ -1681,13 +1156,13 @@ hello.api = function(){
 			else{
 
 				// Assign a new callbackID
-				p.callbackID = utils.globalEvent();
+				p.callbackID = globalEvent();
 
 				// Otherwise we're on to the old school, IFRAME hacks and JSONP
 				// Preprocess the parameters
 				// Change the p parameters
 				if("jsonp" in o){
-					o.jsonp(p,qs);
+					o.jsonp(p,_qs);
 				}
 
 				// Does this provider have a custom method?
@@ -1701,19 +1176,19 @@ hello.api = function(){
 					// Add some additional query parameters to the URL
 					// We're pretty stuffed if the endpoint doesn't like these
 					//			"suppress_response_codes":true
-					qs.redirect_uri = self.settings.redirect_uri;
-					qs.state = JSON.stringify({callback:p.callbackID});
+					_qs.redirect_uri = self.settings.redirect_uri;
+					_qs.state = JSON.stringify({callback:p.callbackID});
 
-					utils.post( format_url, p.data, ("form" in o ? o.form(p) : null), callback, p.callbackID, self.settings.timeout );
+					post( format_url, p.data, ("form" in o ? o.form(p) : null), callback, p.callbackID, self.settings.timeout );
 				}
 
 				// Make the call
 				else{
 
-					qs = utils.merge(qs,p.data);
-					qs.callback = p.callbackID;
+					_qs = merge(_qs,p.data);
+					_qs.callback = p.callbackID;
 
-					utils.jsonp( format_url, callback, p.callbackID, self.settings.timeout );
+					jsonp( format_url, callback, p.callbackID, self.settings.timeout );
 				}
 			}
 		};
@@ -1746,7 +1221,7 @@ hello.api = function(){
 
 		if(proxy){
 			// Use the proxy as a path
-			callback( utils.qs(proxy, {
+			callback( qs(proxy, {
 				path : path,
 				access_token : token||'',
 				then : (method.toLowerCase() === 'get' ? 'redirect' : 'proxy'),
@@ -1756,688 +1231,19 @@ hello.api = function(){
 			return;
 		}
 
-		var qs = { 'access_token' : token||'' };
+		var _qs = { 'access_token' : token||'' };
 
 		if(modifyQueryString){
-			modifyQueryString(qs);
+			modifyQueryString(_qs);
 		}
 
-		callback(  utils.qs( path, qs) );
+		callback(  qs( path, _qs) );
 	}
 
 };
 
+window.hello = hello;
 
+return hello;
 
-
-
-
-
-
-
-
-///////////////////////////////////
-// API Utilities
-///////////////////////////////////
-
-hello.utils.extend( hello.utils, {
-
-	//
-	// isArray
-	isArray : function (o){
-		return Object.prototype.toString.call(o) === '[object Array]';
-	},
-
-
-	// _DOM
-	// return the type of DOM object
-	domInstance : function(type,data){
-		var test = "HTML" + (type||'').replace(/^[a-z]/,function(m){return m.toUpperCase();}) + "Element";
-		if(window[test]){
-			return data instanceof window[test];
-		}else if(window.Element){
-			return data instanceof window.Element && (!type || (data.tagName&&data.tagName.toLowerCase() === type));
-		}else{
-			return (!(data instanceof Object||data instanceof Array||data instanceof String||data instanceof Number) && data.tagName && data.tagName.toLowerCase() === type );
-		}
-	},
-
-	//
-	// Clone
-	// Create a clone of an object
-	clone : function(obj){
-		if("nodeName" in obj){
-			return obj;
-		}
-		var clone = {}, x;
-		for(x in obj){
-			if(typeof(obj[x]) === 'object'){
-				clone[x] = this.clone(obj[x]);
-			}
-			else{
-				clone[x] = obj[x];
-			}
-		}
-		return clone;
-	},
-
-	//
-	// XHR
-	// This uses CORS to make requests
-	xhr : function(method, pathFunc, headers, data, callback){
-
-		var utils = this;
-
-		if(typeof(pathFunc)!=='function'){
-			var path = pathFunc;
-			pathFunc = function(qs, callback){callback(utils.qs( path, qs ));};
-		}
-
-		var r = new XMLHttpRequest();
-
-		// Binary?
-		var binary = false;
-		if(method==='blob'){
-			binary = method;
-			method = 'GET';
-		}
-		// UPPER CASE
-		method = method.toUpperCase();
-
-		// xhr.responseType = "json"; // is not supported in any of the vendors yet.
-		r.onload = function(e){
-			var json = r.response;
-			try{
-				json = JSON.parse(r.responseText);
-			}catch(_e){
-				if(r.status===401){
-					json = {
-						error : {
-							code : "access_denied",
-							message : r.statusText
-						}
-					};
-				}
-			}
-			var headers = headersToJSON(r.getAllResponseHeaders());
-			headers.statusCode = r.status;
-
-			callback( json || ( method!=='DELETE' ? {error:{message:"Could not get resource"}} : {} ), headers );
-		};
-		r.onerror = function(e){
-			var json = r.responseText;
-			try{
-				json = JSON.parse(r.responseText);
-			}catch(_e){}
-
-			callback(json||{error:{
-				code: "access_denied",
-				message: "Could not get resource"
-			}});
-		};
-
-		var qs = {}, x;
-
-		// Should we add the query to the URL?
-		if(method === 'GET'||method === 'DELETE'){
-			if(!utils.isEmpty(data)){
-				qs = utils.merge(qs, data);
-			}
-			data = null;
-		}
-		else if( data && typeof(data) !== 'string' && !(data instanceof FormData) && !(data instanceof File) && !(data instanceof Blob)){
-			// Loop through and add formData
-			var f = new FormData();
-			for( x in data )if(data.hasOwnProperty(x)){
-				if( data[x] instanceof HTMLInputElement ){
-					if( "files" in data[x] && data[x].files.length > 0){
-						f.append(x, data[x].files[0]);
-					}
-				}
-				else if(data[x] instanceof Blob){
-					f.append(x, data[x], data.name);
-				}
-				else{
-					f.append(x, data[x]);
-				}
-			}
-			data = f;
-		}
-
-		// Create url
-
-		pathFunc(qs, function(url){
-
-			// Open the path, async
-			r.open( method, url, true );
-
-			if(binary){
-				if("responseType" in r){
-					r.responseType = binary;
-				}
-				else{
-					r.overrideMimeType("text/plain; charset=x-user-defined");
-				}
-			}
-
-			// Set any bespoke headers
-			if(headers){
-				for(var x in headers){
-					r.setRequestHeader(x, headers[x]);
-				}
-			}
-
-			r.send( data );
-		});
-
-
-		return r;
-
-
-		//
-		// headersToJSON
-		// Headers are returned as a string, which isn't all that great... is it?
-		function headersToJSON(s){
-			var r = {};
-			var reg = /([a-z\-]+):\s?(.*);?/gi,
-				m;
-			while((m = reg.exec(s))){
-				r[m[1]] = m[2];
-			}
-			return r;
-		}
-	},
-
-
-	//
-	// JSONP
-	// Injects a script tag into the dom to be executed and appends a callback function to the window object
-	// @param string/function pathFunc either a string of the URL or a callback function pathFunc(querystringhash, continueFunc);
-	// @param function callback a function to call on completion;
-	//
-	jsonp : function(pathFunc,callback,callbackID,timeout){
-
-		var utils = this;
-
-		// Change the name of the callback
-		var bool = 0,
-			head = document.getElementsByTagName('head')[0],
-			operafix,
-			script,
-			result = {error:{message:'server_error',code:'server_error'}},
-			cb = function(){
-				if( !( bool++ ) ){
-					window.setTimeout(function(){
-						callback(result);
-						head.removeChild(script);
-					},0);
-				}
-			};
-
-		// Add callback to the window object
-		var cb_name = utils.globalEvent(function(json){
-			result = json;
-			return true; // mark callback as done
-		},callbackID);
-
-		// The URL is a function for some cases and as such
-		// Determine its value with a callback containing the new parameters of this function.
-		if(typeof(pathFunc)!=='function'){
-			var path = pathFunc;
-			path = path.replace(new RegExp("=\\?(&|$)"),'='+cb_name+'$1');
-			pathFunc = function(qs, callback){ callback(utils.qs(path, qs));};
-		}
-
-
-		pathFunc(function(qs){
-				for(var x in qs){ if(qs.hasOwnProperty(x)){
-					if (qs[x] === '?') qs[x] = cb_name;
-				}}
-			}, function(url){
-
-			// Build script tag
-			script = utils.append('script',{
-				id:cb_name,
-				name:cb_name,
-				src: url,
-				async:true,
-				onload:cb,
-				onerror:cb,
-				onreadystatechange : function(){
-					if(/loaded|complete/i.test(this.readyState)){
-						cb();
-					}
-				}
-			});
-
-			// Opera fix error
-			// Problem: If an error occurs with script loading Opera fails to trigger the script.onerror handler we specified
-			// Fix:
-			// By setting the request to synchronous we can trigger the error handler when all else fails.
-			// This action will be ignored if we've already called the callback handler "cb" with a successful onload event
-			if( window.navigator.userAgent.toLowerCase().indexOf('opera') > -1 ){
-				operafix = utils.append('script',{
-					text:"document.getElementById('"+cb_name+"').onerror();"
-				});
-				script.async = false;
-			}
-
-			// Add timeout
-			if(timeout){
-				window.setTimeout(function(){
-					result = {error:{message:'timeout',code:'timeout'}};
-					cb();
-				}, timeout);
-			}
-
-			// Todo:
-			// Add fix for msie,
-			// However: unable recreate the bug of firing off the onreadystatechange before the script content has been executed and the value of "result" has been defined.
-			// Inject script tag into the head element
-			head.appendChild(script);
-			
-			// Append Opera Fix to run after our script
-			if(operafix){
-				head.appendChild(operafix);
-			}
-
-		});
-	},
-
-
-	//
-	// Post
-	// Send information to a remote location using the post mechanism
-	// @param string uri path
-	// @param object data, key value data to send
-	// @param function callback, function to execute in response
-	//
-	post : function(pathFunc, data, options, callback, callbackID, timeout){
-
-		var utils = this,
-			doc = document;
-
-		// The URL is a function for some cases and as such
-		// Determine its value with a callback containing the new parameters of this function.
-		if(typeof(pathFunc)!=='function'){
-			var path = pathFunc;
-			pathFunc = function(qs, callback){ callback(utils.qs(path, qs));};
-		}
-
-		// This hack needs a form
-		var form = null,
-			reenableAfterSubmit = [],
-			newform,
-			i = 0,
-			x = null,
-			bool = 0,
-			cb = function(r){
-				if( !( bool++ ) ){
-
-					// fire the callback
-					callback(r);
-
-					// Do not return true, as that will remove the listeners
-					// return true;
-				}
-			};
-
-		// What is the name of the callback to contain
-		// We'll also use this to name the iFrame
-		utils.globalEvent(cb, callbackID);
-
-		// Build the iframe window
-		var win;
-		try{
-			// IE7 hack, only lets us define the name here, not later.
-			win = doc.createElement('<iframe name="'+callbackID+'">');
-		}
-		catch(e){
-			win = doc.createElement('iframe');
-		}
-
-		win.name = callbackID;
-		win.id = callbackID;
-		win.style.display = 'none';
-
-		// Override callback mechanism. Triggger a response onload/onerror
-		if(options&&options.callbackonload){
-			// onload is being fired twice
-			win.onload = function(){
-				cb({
-					response : "posted",
-					message : "Content was posted"
-				});
-			};
-		}
-
-		if(timeout){
-			setTimeout(function(){
-				cb({
-					error : {
-						code:"timeout",
-						message : "The post operation timed out"
-					}
-				});
-			}, timeout);
-		}
-
-		doc.body.appendChild(win);
-
-
-		// if we are just posting a single item
-		if( utils.domInstance('form', data) ){
-			// get the parent form
-			form = data.form;
-			// Loop through and disable all of its siblings
-			for( i = 0; i < form.elements.length; i++ ){
-				if(form.elements[i] !== data){
-					form.elements[i].setAttribute('disabled',true);
-				}
-			}
-			// Move the focus to the form
-			data = form;
-		}
-
-		// Posting a form
-		if( utils.domInstance('form', data) ){
-			// This is a form element
-			form = data;
-
-			// Does this form need to be a multipart form?
-			for( i = 0; i < form.elements.length; i++ ){
-				if(!form.elements[i].disabled && form.elements[i].type === 'file'){
-					form.encoding = form.enctype = "multipart/form-data";
-					form.elements[i].setAttribute('name', 'file');
-				}
-			}
-		}
-		else{
-			// Its not a form element,
-			// Therefore it must be a JSON object of Key=>Value or Key=>Element
-			// If anyone of those values are a input type=file we shall shall insert its siblings into the form for which it belongs.
-			for(x in data) if(data.hasOwnProperty(x)){
-				// is this an input Element?
-				if( utils.domInstance('input', data[x]) && data[x].type === 'file' ){
-					form = data[x].form;
-					form.encoding = form.enctype = "multipart/form-data";
-				}
-			}
-
-			// Do If there is no defined form element, lets create one.
-			if(!form){
-				// Build form
-				form = doc.createElement('form');
-				doc.body.appendChild(form);
-				newform = form;
-			}
-
-			var input;
-
-			// Add elements to the form if they dont exist
-			for(x in data) if(data.hasOwnProperty(x)){
-
-				// Is this an element?
-				var el = ( utils.domInstance('input', data[x]) || utils.domInstance('textArea', data[x]) || utils.domInstance('select', data[x]) );
-
-				// is this not an input element, or one that exists outside the form.
-				if( !el || data[x].form !== form ){
-
-					// Does an element have the same name?
-					var inputs = form.elements[x];
-					if(input){
-						// Remove it.
-						if(!(inputs instanceof NodeList)){
-							inputs = [inputs];
-						}
-						for(i=0;i<inputs.length;i++){
-							inputs[i].parentNode.removeChild(inputs[i]);
-						}
-
-					}
-
-					// Create an input element
-					input = doc.createElement('input');
-					input.setAttribute('type', 'hidden');
-					input.setAttribute('name', x);
-
-					// Does it have a value attribute?
-					if(el){
-						input.value = data[x].value;
-					}
-					else if( utils.domInstance(null, data[x]) ){
-						input.value = data[x].innerHTML || data[x].innerText;
-					}else{
-						input.value = data[x];
-					}
-
-					form.appendChild(input);
-				}
-				// it is an element, which exists within the form, but the name is wrong
-				else if( el && data[x].name !== x){
-					data[x].setAttribute('name', x);
-					data[x].name = x;
-				}
-			}
-
-			// Disable elements from within the form if they weren't specified
-			for(i=0;i<form.elements.length;i++){
-
-				input = form.elements[i];
-
-				// Does the same name and value exist in the parent
-				if( !( input.name in data ) && input.getAttribute('disabled') !== true ) {
-					// disable
-					input.setAttribute('disabled',true);
-
-					// add re-enable to callback
-					reenableAfterSubmit.push(input);
-				}
-			}
-		}
-
-
-		// Set the target of the form
-		form.setAttribute('method', 'POST');
-		form.setAttribute('target', callbackID);
-		form.target = callbackID;
-
-
-		// Call the path
-		pathFunc( {}, function(url){
-
-			// Update the form URL
-			form.setAttribute('action', url);
-
-			// Submit the form
-			// Some reason this needs to be offset from the current window execution
-			setTimeout(function(){
-				form.submit();
-
-				setTimeout(function(){
-					try{
-						// remove the iframe from the page.
-						//win.parentNode.removeChild(win);
-						// remove the form
-						if(newform){
-							newform.parentNode.removeChild(newform);
-						}
-					}
-					catch(e){
-						try{
-							console.error("HelloJS: could not remove iframe");
-						}
-						catch(ee){}
-					}
-
-					// reenable the disabled form
-					for(var i=0;i<reenableAfterSubmit.length;i++){
-						if(reenableAfterSubmit[i]){
-							reenableAfterSubmit[i].setAttribute('disabled', false);
-							reenableAfterSubmit[i].disabled = false;
-						}
-					}
-				},0);
-			},100);
-		});
-
-		// Build an iFrame and inject it into the DOM
-		//var ifm = _append('iframe',{id:'_'+Math.round(Math.random()*1e9), style:shy});
-		
-		// Build an HTML form, with a target attribute as the ID of the iFrame, and inject it into the DOM.
-		//var frm = _append('form',{ method: 'post', action: uri, target: ifm.id, style:shy});
-
-		// _append('input',{ name: x, value: data[x] }, frm);
-	},
-
-
-	//
-	// Some of the providers require that only MultiPart is used with non-binary forms.
-	// This function checks whether the form contains binary data
-	hasBinary : function (data){
-		var w = window;
-		for(var x in data ) if(data.hasOwnProperty(x)){
-			if( (this.domInstance('input', data[x]) && data[x].type === 'file')	||
-				("FileList" in w && data[x] instanceof w.FileList) ||
-				("File" in w && data[x] instanceof w.File) ||
-				("Blob" in w && data[x] instanceof w.Blob)
-			){
-				return true;
-			}
-		}
-		return false;
-	}
 });
-
-
-
-
-
-//
-// EXTRA: Convert FORMElements to JSON for POSTING
-// Wrappers to add additional functionality to existing functions
-//
-(function(hello){
-	// Copy original function
-	var api = hello.api;
-	var utils = hello.utils;
-
-utils.extend(utils, {
-	//
-	// dataToJSON
-	// This takes a FormElement|NodeList|InputElement|MixedObjects and convers the data object to JSON.
-	//
-	dataToJSON : function (p){
-
-		var utils = this,
-			w = window;
-
-		var data = p.data;
-
-		// Is data a form object
-		if( utils.domInstance('form', data) ){
-
-			data = utils.nodeListToJSON(data.elements);
-
-		}
-		else if ( "NodeList" in w && data instanceof NodeList ){
-
-			data = utils.nodeListToJSON(data);
-
-		}
-		else if( utils.domInstance('input', data) ){
-
-			data = utils.nodeListToJSON( [ data ] );
-
-		}
-
-		// Is data a blob, File, FileList?
-		if( ("File" in w && data instanceof w.File) ||
-			("Blob" in w && data instanceof w.Blob) ||
-			("FileList" in w && data instanceof w.FileList) ){
-
-			// Convert to a JSON object
-			data = {'file' : data};
-		}
-
-		// Loop through data if its not FormData it must now be a JSON object
-		if( !( "FormData" in w && data instanceof w.FormData ) ){
-
-			// Loop through the object
-			for(var x in data) if(data.hasOwnProperty(x)){
-
-				// FileList Object?
-				if("FileList" in w && data[x] instanceof w.FileList){
-					// Get first record only
-					if(data[x].length===1){
-						data[x] = data[x][0];
-					}
-					else{
-						//("We were expecting the FileList to contain one file");
-					}
-				}
-				else if( utils.domInstance('input', data[x]) && data[x].type === 'file' ){
-					// ignore
-					continue;
-				}
-				else if( utils.domInstance('input', data[x]) ||
-					utils.domInstance('select', data[x]) ||
-					utils.domInstance('textArea', data[x])
-					){
-					data[x] = data[x].value;
-				}
-				// Else is this another kind of element?
-				else if( utils.domInstance(null, data[x]) ){
-					data[x] = data[x].innerHTML || data[x].innerText;
-				}
-			}
-		}
-
-		// Data has been converted to JSON.
-		p.data = data;
-		return data;
-	},
-
-
-	//
-	// NodeListToJSON
-	// Given a list of elements extrapolate their values and return as a json object
-	nodeListToJSON : function(nodelist){
-
-		var json = {};
-
-		// Create a data string
-		for(var i=0;i<nodelist.length;i++){
-
-			var input = nodelist[i];
-
-			// If the name of the input is empty or diabled, dont add it.
-			if(input.disabled||!input.name){
-				continue;
-			}
-
-			// Is this a file, does the browser not support 'files' and 'FormData'?
-			if( input.type === 'file' ){
-				json[ input.name ] = input;
-			}
-			else{
-				json[ input.name ] = input.value || input.innerHTML;
-			}
-		}
-
-		return json;
-	}
-});
-
-
-	// Replace it
-	hello.api = function(){
-		// get arguments
-		var p = utils.args({path:'s!', method : "s", data:'o', timeout:'i', callback:"f" }, arguments);
-		// Change for into a data object
-		utils.dataToJSON(p);
-		// Continue
-		return api.call(this, p);
-	};
-
-})(hello);

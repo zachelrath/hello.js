@@ -1,7 +1,13 @@
 //
 // Facebook
 //
-(function(hello){
+define([
+	'hello',
+	'utils/hasBinary'
+],function(
+	hello,
+	hasBinary
+){
 
 function formatUser(o){
 	if(o.id){
@@ -135,7 +141,7 @@ hello.init({
 		// Special requirements for handling JSONP fallback
 		jsonp : function(p,qs){
 			var m = p.method.toLowerCase();
-			if( m !== 'get' && !hello.utils.hasBinary(p.data) ){
+			if( m !== 'get' && !hasBinary(p.data) ){
 				p.data.method = m;
 				p.method = 'get';
 			}
@@ -156,4 +162,4 @@ hello.init({
 });
 
 
-})(hello);
+});

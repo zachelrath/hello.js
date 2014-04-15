@@ -2,7 +2,7 @@
 // Yahoo
 //
 // Register Yahoo developer
-(function(hello){
+define(['hello'],function(hello){
 
 function formatError(o){
 	if(o && "meta" in o && "error_type" in o.meta){
@@ -125,4 +125,4 @@ hello.init({
 	}
 });
 
-})(hello);
+});

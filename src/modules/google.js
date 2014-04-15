@@ -1,7 +1,23 @@
 //
 // GOOGLE API
 //
-(function(hello, window){
+define([
+	'hello',
+	'utils/append',
+	'utils/domInstance',
+	'utils/hasBinary',
+	'utils/param',
+	'utils/qs',
+	'utils/xhr'
+],function(
+	hello,
+	append,
+	domInstance,
+	hasBinary,
+	param,
+	_qs,
+	xhr
+){
 
 	"use strict";
 
@@ -176,10 +192,6 @@
 		}
 	}
 
-	//
-	// Misc
-	var utils = hello.utils;
-
 
 	// Multipart
 	// Construct a multipart message
@@ -302,7 +314,7 @@
 			xd_id = String(parseInt(Math.random()*1e8,10));
 
 			// Create the proxy window
-			xd_iframe = utils.append('iframe', { src : origin + "/static/proxy.html?jsh=m%3B%2F_%2Fscs%2Fapps-static%2F_%2Fjs%2Fk%3Doz.gapi.en.mMZgig4ibk0.O%2Fm%3D__features__%2Fam%3DEQ%2Frt%3Dj%2Fd%3D1%2Frs%3DAItRSTNZBJcXGialq7mfSUkqsE3kvYwkpQ#parent="+window.location.origin+"&rpctoken="+xd_id,
+			xd_iframe = append('iframe', { src : origin + "/static/proxy.html?jsh=m%3B%2F_%2Fscs%2Fapps-static%2F_%2Fjs%2Fk%3Doz.gapi.en.mMZgig4ibk0.O%2Fm%3D__features__%2Fam%3DEQ%2Frt%3Dj%2Fd%3D1%2Frs%3DAItRSTNZBJcXGialq7mfSUkqsE3kvYwkpQ#parent="+window.location.origin+"&rpctoken="+xd_id,
 										style : {position:'absolute',left:"-1000px",bottom:0,height:'1px',width:'1px'} }, 'body');
 
 			// Listen for on ready events
@@ -346,7 +358,7 @@
 
 			var nav = window.navigator,
 				position = ++xd_counter,
-				qs = utils.param(url.match(/\?.+/)[0]);
+				qs = param(url.match(/\?.+/)[0]);
 
 			var token = qs.access_token;
 			delete qs.access_token;
@@ -626,7 +638,7 @@
 				if(p.method==='post'||p.method==='put'){
 
 					// Does this contain binary data?
-					if( p.data && utils.hasBinary(p.data) || p.data.file ){
+					if( p.data && hasBinary(p.data) || p.data.file ){
 
 						// There is support for CORS via Access Control headers
 						// ... unless otherwise stated by post/put handlers
@@ -660,7 +672,7 @@
 
 				// Contain inaccessible binary data?
 				// If there is no "files" property on an INPUT then we can't get the data
-				if( "file" in p.data && utils.domInstance('input', p.data.file ) && !( "files" in p.data.file ) ){
+				if( "file" in p.data && domInstance('input', p.data.file ) && !( "files" in p.data.file ) ){
 					callback({
 						error : {
 							code : 'request_invalid',
@@ -710,13 +722,13 @@
 					// Does this userAgent and endpoint support CORS?
 					if( p.cors_support ){
 						// Deliver via 
-						utils.xhr( p.method, utils.qs(url,qs), {
+						xhr( p.method, _qs(url,qs), {
 							'content-type' : 'multipart/related; boundary="'+boundary+'"'
 						}, body, callback );
 					}
 					else{
 						// Otherwise lets POST the data the good old fashioned way postMessage
-						xd( p.method, utils.qs(url,qs), {
+						xd( p.method, _qs(url,qs), {
 							'content-type' : 'multipart/related; boundary="'+boundary+'"'
 						}, body, callback );
 					}
@@ -726,4 +738,4 @@
 			}
 		}
 	});
-})(hello, window);
+});

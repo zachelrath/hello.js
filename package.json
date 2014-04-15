@@ -44,6 +44,8 @@
     "sinon": "~1.7.3",
     "grunt": "^0.4.4",
     "grunt-contrib-jshint": "^0.10.0",
-    "grunt-contrib-watch": "^0.6.1"
+    "grunt-contrib-watch": "^0.6.1",
+    "grunt-contrib-requirejs": "^0.4.3",
+    "amdclean": "^1.5.0"
   }
 }

@@ -1,7 +1,7 @@
 //
 // SoundCloud
 //
-(function(hello){
+define(['hello'],function(hello){
 
 
 function formatUser(o){
@@ -81,4 +81,4 @@ hello.init({
 	}
 });
 
-})(hello);
+});

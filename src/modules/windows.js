@@ -2,7 +2,13 @@
 // Windows
 //
 
-(function(hello){
+define([
+	'hello',
+	'utils/hasBinary'
+],function(
+	hello,
+	hasBinary
+){
 
 function formatUser(o){
 	if(o.id){
@@ -141,7 +147,7 @@ hello.init({
 			}
 		},
 		xhr : function(p){
-			if( p.method !== 'get' && p.method !== 'delete' && !hello.utils.hasBinary(p.data) ){
+			if( p.method !== 'get' && p.method !== 'delete' && !hasBinary(p.data) ){
 
 				// Does this have a data-uri to upload as a file?
 				if( typeof( p.data.file ) === 'string' ){
@@ -156,7 +162,7 @@ hello.init({
 			return true;
 		},
 		jsonp : function(p){
-			if( p.method.toLowerCase() !== 'get' && !hello.utils.hasBinary(p.data) ){
+			if( p.method.toLowerCase() !== 'get' && !hasBinary(p.data) ){
 				//p.data = {data: JSON.stringify(p.data), method: p.method.toLowerCase()};
 				p.data.method = p.method.toLowerCase();
 				p.method = 'get';
@@ -165,4 +171,4 @@ hello.init({
 	}
 });
 
-})(hello);
+});

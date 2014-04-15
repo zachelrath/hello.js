@@ -1,7 +1,7 @@
 //
 // Instagram
 //
-(function(hello){
+define(['hello'],function(hello){
 
 
 function formatError(o){
@@ -117,4 +117,4 @@ hello.init({
 		xhr : false
 	}
 });
-})(hello);
+});

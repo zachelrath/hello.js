@@ -16,33 +16,50 @@
 
 
 <!-- AUTHENTICATION -->
-<script src="../src/hello.js"></script>
 <script src="../demos/client_ids.js"></script>
+
+<script src="../node_modules/requirejs/require.js"></script>
 <script>
 
-	//
-	// hello.all.js
-	// Load all modules
-	function loadModule(a){
-		for(var i=0;i<a.length;i++){
-			document.write('<script src="../src/modules/'+a[i]+'"><\/script>');
-		}
-	}
+require.config({
+	baseUrl: '../src/'
+});
 
-	loadModule([
-		'facebook.js',
-		'flickr.js',
-		'google.js',
-		'windows.js',
-		'dropbox.js',
-		'twitter.js',
-		'yahoo.js',
-		'instagram.js',
-		'linkedin.js',
-		'foursquare.js',
-		'github.js',
-		'soundcloud.js'
-	]);
+require([
+	'modules/facebook',
+	'modules/flickr',
+	'modules/google',
+	'modules/windows',
+	'modules/dropbox',
+	'modules/twitter',
+	'modules/yahoo',
+	'modules/instagram',
+	'modules/linkedin',
+	'modules/foursquare',
+	'modules/github',
+	'modules/soundcloud',
+
+	"../assets/index.js"
+
+], function(){
+
+	indexInit();
+
+	// Initiate the library
+	hello.init(
+		CLIENT_IDS_ALL,
+		{
+			redirect_uri: '../redirect.html', 
+			oauth_proxy: OAUTH_PROXY_URL
+		}
+	);
+
+	$('#tests-template').load('../assets/test_network.html', function(){
+		//knockout binding goes here
+		ko.applyBindings(model);
+	});
+
+});
 
 </script>
 </head>
@@ -76,22 +93,7 @@
 
 
 <!-- TESTS -->
-<script src="../assets/index.js"></script>
-
 <script type="text/html" id="tests-template"></script>
-
-<script type="text/javascript">
-
-// Initiate the library
-hello.init(CLIENT_IDS_ALL,{redirect_uri: '../redirect.html', oauth_proxy:OAUTH_PROXY_URL});
-
-$('#tests-template').load('../assets/test_network.html', function(){
-	//knockout binding goes here
-	ko.applyBindings(model);
-});
-
-
-</script>
 
 </body>
 </html>

@@ -3,8 +3,55 @@
 //
 module.exports = function(grunt) {
 
+	function merge(a,b){
+		for(var x in b){
+			a[x] = b[x];
+		}
+		return a;
+	}
+
+	function require_options(name, opts){
+		return {
+			options: merge({
+				baseUrl : 'src',
+				name : name,
+				out : 'dist/'+name+ (opts&&opts.optimize?'.min':'')+'.js',
+				optimize : 'none',
+
+				// FORMATTING
+				'wrap': {
+					'start': '(function(window,document,undefined){',
+					'end': '})(window,document)',
+				},
+				onModuleBundleComplete: function (data) {
+					var fs = require('fs'),
+						amdclean = require('amdclean'),
+						outputFile = data.path;
+
+					fs.writeFileSync(outputFile, amdclean.clean({
+						'filePath': outputFile
+					}));
+				}
+			}, opts)
+		};
+	}
+
+	// //////////////////////////
+	// 
+	// //////////////////////////
+
 	grunt.initConfig({
 		pkg: grunt.file.readJSON('package.json'),
+		requirejs : {
+			develop : require_options('hello'),
+			minified : require_options('hello',{
+				optimize: "uglify2"
+			}),
+			all_develop : require_options('hello.all'),
+			all_minified : require_options('hello.all',{
+				optimize: "uglify2"
+			})
+		},
 		jshint: {
 			files: ['Gruntfile.js', 'src/**/*.js'],//, 'test/**/*.js'],
 			options: {
@@ -43,9 +90,10 @@ module.exports = function(grunt) {
 
 	grunt.loadNpmTasks('grunt-contrib-jshint');
 	grunt.loadNpmTasks('grunt-contrib-watch');
+	grunt.loadNpmTasks('grunt-contrib-requirejs');
 	grunt.loadNpmTasks('shunt');
 
 	grunt.registerTask('test', ['jshint']);
-	grunt.registerTask('default', ['jshint', 'shunt:build', 'shunt:minify']);
+	grunt.registerTask('default', ['jshint', 'requirejs']);
 
 };

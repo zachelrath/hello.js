@@ -1,7 +1,13 @@
 //
 // Dropbox
 //
-(function(hello){
+define([
+	'hello',
+	'utils/param'
+], function(
+	hello,
+	param
+){
 
 function formatError(o){
 	if(o&&"error" in o){
@@ -145,7 +151,7 @@ hello.init({
 				var name = p.data.name;
 				p.data = {};
 
-				callback('fileops/create_folder?root=@{root|sandbox}&'+hello.utils.param({
+				callback('fileops/create_folder?root=@{root|sandbox}&'+param({
 					path : name
 				}));
 			}
@@ -220,4 +226,4 @@ hello.init({
 	}
 });
 
-})(hello);
+});
