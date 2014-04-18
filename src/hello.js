@@ -34,7 +34,12 @@ define([
 	'utils/realPath',
 	'utils/store',
 	'utils/unique',
-	'utils/xhr'
+	'utils/xhr',
+
+	// handler
+	'handler/OAuthResponseHandler',
+	'handler/OAuthPopup'
+
 ],function(
 
 	append,
@@ -56,8 +61,10 @@ define([
 	realPath,
 	store,
 	unique,
-	xhr
+	xhr,
 
+	OAuthResponseHandler,
+	OAuthPopup
 ){
 
 
@@ -256,39 +263,50 @@ extend( hello, {
 		// Callback
 		// Save the callback until state comes back.
 		//
-		var responded = false;
+		var resolved = false;
+
+
+		//
+		// Resolve this request for login
+		//
+		function resolve(obj){
+
+			var event_name;
+
+			if(!resolved){
+
+				resolved = true;
+
+				//
+				// Handle these response using the local
+				// Trigger on the parent
+				if(!obj.error){
+
+					//
+					event_name = "complete success login auth.login auth";
+
+					// Save on the parent window the new credentials
+					// This fixes an IE10 bug i think... atleast it does for me.
+					store(obj.network,obj);
+
+					// Trigger local complete events
+					obj = {
+						network : obj.network,
+						authResponse : obj
+					};
+				}
+				else{
+					event_name = "complete error failed auth.failed";
+				}
+
+				self.emit(event_name, obj);
+			}
+		}
+
 
 		//
 		// Create a global listener to capture events triggered out of scope
-		var callback_id = globalEvent(function(obj){
-
-			//
-			// Cancel the popup close listener
-			responded = true;
-
-			//
-			// Handle these response using the local
-			// Trigger on the parent
-			if(!obj.error){
-
-				// Save on the parent window the new credentials
-				// This fixes an IE10 bug i think... atleast it does for me.
-				store(obj.network,obj);
-
-				// Trigger local complete events
-				self.emit("complete success login auth.login auth", {
-					network : obj.network,
-					authResponse : obj
-				});
-			}
-			else{
-				// Trigger local complete events
-				self.emit("complete error failed auth.failed", {
-					error : obj.error
-				});
-			}
-		});
-
+		var callback_id = globalEvent(resolve);
 
 
 		//
@@ -424,49 +442,19 @@ extend( hello, {
 		// Triggering popup?
 		else if( opts.display === 'popup'){
 
-			var windowHeight = opts.window_height || 550;
-			var windowWidth = opts.window_width || 500;
-
-			// Help the minifier
-			var documentElement = document.documentElement;
-			var screen = window.screen;
-
-			// Multi Screen Popup Positioning (http://stackoverflow.com/a/16861050)
-			//   Credit: http://www.xtf.dk/2011/08/center-new-popup-window-even-on.html
-			// Fixes dual-screen position                         Most browsers      Firefox
-			var dualScreenLeft = window.screenLeft !== undefined ? window.screenLeft : screen.left;
-			var dualScreenTop = window.screenTop !== undefined ? window.screenTop : screen.top;
-
-			var width = window.innerWidth || documentElement.clientWidth || screen.width;
-			var height = window.innerHeight || documentElement.clientHeight || screen.height;
-
-			var left = ((width - windowWidth) / 2) + dualScreenLeft;
-			var top  = ((height - windowHeight) / 2) + dualScreenTop;
-
-			// Trigger callback
-			var popup = window.open(
-				//
-				// OAuth redirect, fixes URI fragments from being lost in Safari
-				// (URI Fragments within 302 Location URI are lost over HTTPS)
-				// Loading the redirect.html before triggering the OAuth Flow seems to fix it.
-				// 
-				// FIREFOX, decodes URL fragments when calling location.hash. 
-				//  - This is bad if the value contains break points which are escaped
-				//  - Hence the url must be encoded twice as it contains breakpoints.
-				p.qs.redirect_uri + "#oauth_redirect=" + encodeURIComponent(encodeURIComponent(url)),
-				'Authentication',
-				"resizeable=true,height=" + windowHeight + ",width=" + windowWidth + ",left=" + left + ",top="  + top
-			);
+			//
+			// Create the OAuth Popup
+			var popup = OAuthPopup( url, opts.redirect_uri, opts.window_width || 500, opts.window_height || 500 );
 
 			// Ensure popup window has focus upon reload, Fix for FF.
-			popup.focus();
+			if(popup&&popup.focus){
+				popup.focus();
+			}
 
 			var timer = setInterval(function(){
 				if(popup.closed){
 					clearInterval(timer);
-					if(!responded){
-						self.emit("complete failed error", {error:{code:"cancelled", message:"Login has been cancelled"}, network:p.network });
-					}
+					resolve({error:{code:"cancelled", message:"Login has been cancelled"}});
 				}
 			}, 100);
 		}
@@ -716,177 +704,13 @@ Event.call(hello);
 
 
 
-
-
-/////////////////////////////////////
 //
-// Save any access token that is in the current page URL
+// Intitiate Query reading
+// This is processed at runtime when the script is included in the page
+// Typically this lets parent->popup communicate
+// It will be run when hello.js is provisioned on the redirect_uri page, e.g. redirect.html
 //
-/////////////////////////////////////
-
-(function(hello, window){
-
-	var location = window.location;
-
-	var debug = function(msg,e){
-		append("p", {text:msg}, document.documentElement);
-		if(e){
-			console.log(e);
-		}
-	};
-
-	//
-	// AuthCallback
-	// Trigger a callback to authenticate
-	//
-	function authCallback(network, obj){
-
-		// Trigger the callback on the parent
-		store(obj.network, obj );
-
-		// this is a popup so
-		if( !("display" in p) || p.display !== 'page'){
-
-			// trigger window.opener
-			var win = (window.opener||window.parent);
-
-			if(win){
-				// Call the generic listeners
-//				win.hello.emit(network+":auth."+(obj.error?'failed':'login'), obj);
-				// Call the inline listeners
-
-				// to do remove from session object...
-				var cb = obj.callback;
-				try{
-					delete obj.callback;
-				}catch(e){}
-
-				// Update store
-				store(obj.network,obj);
-
-				// Call the globalEvent function on the parent
-				if(cb in win){
-					try{
-						win[cb](obj);
-					}
-					catch(e){
-						debug("Error thrown whilst executing parent callback", e);
-						return;
-					}
-				}
-				else{
-					debug("Error: Callback missing from parent window, snap!");
-					return;
-				}
-
-			}
-
-			// Close this current window
-			try{
-				window.close();
-			}
-			catch(e){}
-
-			// IOS bug wont let us clos it if still loading
-			window.addEventListener('load', function(){
-				window.close();
-			});
-
-			debug("Trying to close window");
-
-			// Dont execute any more
-			return;
-		}
-	}
-
-	//
-	// Save session, from redirected authentication
-	// #access_token has come in?
-	//
-	// FACEBOOK is returning auth errors within as a query_string... thats a stickler for consistency.
-	// SoundCloud is the state in the querystring and the token in the hashtag, so we'll mix the two together
-	
-	var p = merge(param(location.search||''), param(location.hash||''));
-
-	
-	// if p.state
-	if( p && "state" in p ){
-
-		// remove any addition information
-		// e.g. p.state = 'facebook.page';
-		try{
-			var a = JSON.parse(p.state);
-			p = merge(p, a);
-		}catch(e){
-			debug("Could not decode state parameter");
-		}
-
-		// access_token?
-		if( ("access_token" in p&&p.access_token) && p.network ){
-
-			if(!p.expires_in || parseInt(p.expires_in,10) === 0){
-				// If p.expires_in is unset, set to 0
-				p.expires_in = 0;
-			}
-			p.expires_in = parseInt(p.expires_in,10);
-			p.expires = ((new Date()).getTime()/1e3) + (p.expires_in || ( 60 * 60 * 24 * 365 ));
-
-			// Make this the default users service
-			hello.service( p.network );
-
-			// Lets use the "state" to assign it to one of our networks
-			authCallback( p.network, p );
-		}
-
-		//error=?
-		//&error_description=?
-		//&state=?
-		else if( ("error" in p && p.error) && p.network ){
-			// Error object
-			p.error = {
-				code: p.error,
-				message : p.error_message || p.error_description
-			};
-
-			// Let the state handler handle it.
-			authCallback( p.network, p );
-		}
-
-		// API Calls
-		// IFRAME HACK
-		// Result is serialized JSON string.
-		if(p&&p.callback&&"result" in p && p.result ){
-			// trigger a function in the parent
-			if(p.callback in window.parent){
-				window.parent[p.callback](JSON.parse(p.result));
-			}
-		}
-	}
-	//
-	// OAuth redirect, fixes URI fragments from being lost in Safari
-	// (URI Fragments within 302 Location URI are lost over HTTPS)
-	// Loading the redirect.html before triggering the OAuth Flow seems to fix it.
-	else if("oauth_redirect" in p){
-		window.location = decodeURIComponent(p.oauth_redirect);
-		return;
-	}
-
-	// redefine
-	p = param(location.search);
-
-	// IS THIS AN OAUTH2 SERVER RESPONSE? OR AN OAUTH1 SERVER RESPONSE?
-	if((p.code&&p.state) || (p.oauth_token&&p.proxy_url)){
-		// Add this path as the redirect_uri
-		p.redirect_uri = location.href.replace(/[\?\#].*$/,'');
-		// JSON decode
-		var state = JSON.parse(p.state);
-		// redirect to the host
-		var path = (state.oauth_proxy || p.proxy_url) + "?" + param(p);
-
-		window.location = path;
-	}
-
-})(hello, window);
+OAuthResponseHandler( window, window.opener || window.parent );
 
 
 
