@@ -24,6 +24,7 @@ define([
 	'utils/extend',
 	'utils/globalEvent',
 	'utils/hasBinary',
+	'utils/hiddenIframe',
 	'utils/isEmpty',
 	'utils/jsonp',
 	'utils/merge',
@@ -51,6 +52,7 @@ define([
 	extend,
 	globalEvent,
 	hasBinary,
+	hiddenIframe,
 	isEmpty,
 	jsonp,
 	merge,
@@ -435,7 +437,7 @@ extend( hello, {
 		//
 		if( opts.display === 'none' ){
 			// signin in the background, iframe
-			append('iframe', { src : url, style : {position:'absolute',left:"-1000px",bottom:0,height:'1px',width:'1px'} }, 'body');
+			hiddenIframe( url );
 		}
 
 
