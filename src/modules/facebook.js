@@ -65,6 +65,25 @@ hello.init({
 			auth : 'https://www.facebook.com/dialog/oauth/'
 		},
 
+		logout : function(callback){
+			// Assign callback to a global handler
+			var callbackID = hello.utils.globalEvent( callback );
+			var redirect = encodeURIComponent( hello.settings.redirect_uri + "?" + hello.utils.param( { callback:callbackID, result : JSON.stringify({force:true}), state : '{}' } ) );
+			var token = (hello.utils.store('facebook')||{}).access_token;
+			hello.utils.iframe( 'https://www.facebook.com/logout.php?next='+ redirect +'&access_token='+ token );
+
+			// Possible responses
+			// String URL	- hello.logout should handle the logout
+			// undefined	- this function will handle the callback
+			// true			- throw a success, this callback isn't handling the callback
+			// false		- throw a error
+			
+			if(!token){
+				// if there isn't a token, the above wont return a response, so lets trigger a response
+				return false;
+			}
+		},
+
 		// Authorization scopes
 		scope : {
 			basic			: '',

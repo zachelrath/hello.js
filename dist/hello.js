@@ -317,6 +317,20 @@
                 return false;
             };
         }(utils_domInstance);
+    var utils_hiddenIframe = function (append) {
+            return function (url) {
+                return append('iframe', {
+                    src: url,
+                    style: {
+                        position: 'absolute',
+                        left: '-1000px',
+                        bottom: 0,
+                        height: '1px',
+                        width: '1px'
+                    }
+                }, 'body');
+            };
+        }(utils_append);
     var utils_isEmpty = function (obj) {
         // scalar?
         if (!obj) {
@@ -1090,7 +1104,7 @@
                 return open(url);
             };
         }(utils_parseURL, handler_OAuthResponseHandler);
-    var hello = function (append, args, clone, dataToJSON, diff, Event, extend, globalEvent, hasBinary, isEmpty, jsonp, merge, objectCreate, param, post, qs, realPath, store, unique, xhr, OAuthResponseHandler, OAuthPopup) {
+    var hello = function (append, args, clone, dataToJSON, diff, Event, extend, globalEvent, hasBinary, hiddenIframe, isEmpty, jsonp, merge, objectCreate, param, post, qs, realPath, store, unique, xhr, OAuthResponseHandler, OAuthPopup) {
             //
             // Setup
             // Initiates the construction of the library
@@ -1384,16 +1398,7 @@
                     //
                     if (opts.display === 'none') {
                         // signin in the background, iframe
-                        append('iframe', {
-                            src: url,
-                            style: {
-                                position: 'absolute',
-                                left: '-1000px',
-                                bottom: 0,
-                                height: '1px',
-                                width: '1px'
-                            }
-                        }, 'body');
+                        hiddenIframe(url);
                     } else if (opts.display === 'popup') {
                         //
                         // Create the OAuth Popup
@@ -1424,15 +1429,17 @@
                 // @param string name of the service
                 // @param function callback
                 //
-                logout: function (s, callback) {
-                    var p = args({
-                            name: 's',
-                            callback: 'f'
-                        }, arguments);
+                logout: function () {
                     // Create self
                     // An object which inherits its parent as the prototype.
                     // And constructs a new event chain.
                     var self = this.use();
+                    var p = args({
+                            name: 's',
+                            options: 'o',
+                            callback: 'f'
+                        }, arguments);
+                    p.options = p.options || {};
                     // Add callback to events
                     self.on('complete', p.callback);
                     // Netowrk
@@ -1444,15 +1451,40 @@
                                 message: 'The network was unrecognized'
                             }
                         });
-                        return self;
-                    }
-                    if (p.name && store(p.name)) {
-                        // Trigger a logout callback on the provider
-                        if (typeof self.services[p.name].logout === 'function') {
-                            self.services[p.name].logout(p);
+                    } else if (p.name && store(p.name)) {
+                        // Define the callback
+                        var callback = function (opts) {
+                            // Remove from the store
+                            store(p.name, '');
+                            // Emit events by default
+                            self.emitAfter('complete logout success auth.logout auth', merge({ network: p.name }, opts || {}));
+                        };
+                        //
+                        // Run an async operation to remove the users session
+                        // 
+                        var _opts = {};
+                        if (p.options.force) {
+                            var logout = self.services[p.name].logout;
+                            if (logout) {
+                                // Convert logout to URL string,
+                                // If no string is returned, then this function will handle the logout async style
+                                if (typeof logout === 'function') {
+                                    logout = logout(callback);
+                                }
+                                // If logout is a string then assume URL and open in iframe.
+                                if (typeof logout === 'string') {
+                                    hiddenIframe(logout);
+                                    _opts.force = null;
+                                    _opts.message = 'Logout success on providers site was indeterminate';
+                                } else if (logout === undefined) {
+                                    // the callback function will handle the response.
+                                    return self;
+                                }
+                            }
                         }
-                        // Remove from the store
-                        store(p.name, '');
+                        //
+                        // Remove local credentials
+                        callback(_opts);
                     } else if (!p.name) {
                         for (var x in self.services) {
                             if (self.services.hasOwnProperty(x)) {
@@ -1468,10 +1500,7 @@
                                 message: 'There was no session to remove'
                             }
                         });
-                        return self;
                     }
-                    // Emit events by default
-                    self.emitAfter('complete logout success auth.logout auth', { network: p.name });
                     return self;
                 },
                 //
@@ -1879,5 +1908,5 @@
             };
             window.hello = hello;
             return hello;
-        }(utils_append, utils_args, utils_clone, utils_dataToJSON, utils_diff, utils_event, utils_extend, utils_globalEvent, utils_hasBinary, utils_isEmpty, utils_jsonp, utils_merge, utils_objectCreate, utils_param, utils_post, utils_qs, utils_realPath, utils_store, utils_unique, utils_xhr, handler_OAuthResponseHandler, handler_OAuthPopup);
+        }(utils_append, utils_args, utils_clone, utils_dataToJSON, utils_diff, utils_event, utils_extend, utils_globalEvent, utils_hasBinary, utils_hiddenIframe, utils_isEmpty, utils_jsonp, utils_merge, utils_objectCreate, utils_param, utils_post, utils_qs, utils_realPath, utils_store, utils_unique, utils_xhr, handler_OAuthResponseHandler, handler_OAuthPopup);
 }(window, document));
