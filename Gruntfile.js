@@ -57,6 +57,10 @@ module.exports = function(grunt) {
 			all_develop : require_options('hello.all'),
 			all_minified : require_options('hello.all',{
 				optimize: "uglify2"
+			}),
+			redirect_develop : require_options('hello.redirect'),
+			redirect_minified : require_options('hello.redirect',{
+				optimize: "uglify2"
 			})
 		},
 		concat: {
