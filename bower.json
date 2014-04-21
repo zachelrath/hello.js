@@ -15,5 +15,8 @@
 		"ui",
 		"*.html",
 		"package.json"
-	]
+	],
+	"devDependencies": {
+		"require-sync": "*"
+	}
 }
