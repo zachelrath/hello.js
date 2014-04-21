@@ -15,53 +15,11 @@
 <script src="/_packages/document.js"></script>
 
 
-<!-- AUTHENTICATION -->
+<!-- Get HelloJS with all modules -->
+<script src="../bower_components/require-sync/require-sync.js" data-main="../src/hello.all"></script>
 <script src="../demos/client_ids.js"></script>
 
-<script src="../node_modules/requirejs/require.js"></script>
-<script>
 
-require.config({
-	baseUrl: '../src/'
-});
-
-require([
-	'modules/facebook',
-	'modules/flickr',
-	'modules/google',
-	'modules/windows',
-	'modules/dropbox',
-	'modules/twitter',
-	'modules/yahoo',
-	'modules/instagram',
-	'modules/linkedin',
-	'modules/foursquare',
-	'modules/github',
-	'modules/soundcloud',
-
-	"../assets/index.js"
-
-], function(){
-
-	indexInit();
-
-	// Initiate the library
-	hello.init(
-		CLIENT_IDS_ALL,
-		{
-			redirect_uri: '../redirect.html', 
-			oauth_proxy: OAUTH_PROXY_URL
-		}
-	);
-
-	$('#tests-template').load('../assets/test_network.html', function(){
-		//knockout binding goes here
-		ko.applyBindings(model);
-	});
-
-});
-
-</script>
 </head>
 <body class="xfullscreen">
 
@@ -94,6 +52,26 @@ require([
 
 <!-- TESTS -->
 <script type="text/html" id="tests-template"></script>
+<script src="../assets/index.js"></script>
+
+<script>
+
+// Initiate the library
+hello.init(
+	CLIENT_IDS_ALL,
+	{
+		redirect_uri: '../redirect.html', 
+		oauth_proxy: OAUTH_PROXY_URL
+	}
+);
+
+$('#tests-template').load('../assets/test_network.html', function(){
+	//knockout binding goes here
+	ko.applyBindings(model);
+});
+
+</script>
+
 
 </body>
 </html>
