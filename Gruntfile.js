@@ -10,6 +10,13 @@ module.exports = function(grunt) {
 		return a;
 	}
 
+	function concat(name){
+		return {
+			src: ['dist/'+name+'.js', 'src/hello.amd.js'],//, 'test/**/*.js'],
+			dest : 'dist/'+name+'.js'
+		};
+	}
+
 	function require_options(name, opts){
 		return {
 			options: merge({
@@ -52,6 +59,17 @@ module.exports = function(grunt) {
 				optimize: "uglify2"
 			})
 		},
+		concat: {
+			options: {
+				//stripBanners: true,
+				banner: '/*! <%= pkg.name %> - v<%= pkg.version %> - ' +
+				'<%= grunt.template.today("yyyy-mm-dd") %> */\n',
+			},
+			develop : concat('hello'),
+			minified : concat('hello.min'),
+			all_develop : concat('hello.all'),
+			all_minified : concat('hello.all.min')
+		},
 		jshint: {
 			files: ['Gruntfile.js', 'src/**/*.js'],//, 'test/**/*.js'],
 			options: {
@@ -90,10 +108,11 @@ module.exports = function(grunt) {
 
 	grunt.loadNpmTasks('grunt-contrib-jshint');
 	grunt.loadNpmTasks('grunt-contrib-watch');
+	grunt.loadNpmTasks('grunt-contrib-concat');
 	grunt.loadNpmTasks('grunt-contrib-requirejs');
 	grunt.loadNpmTasks('shunt');
 
 	grunt.registerTask('test', ['jshint']);
-	grunt.registerTask('default', ['jshint', 'requirejs']);
+	grunt.registerTask('default', ['jshint', 'requirejs', 'concat']);
 
 };

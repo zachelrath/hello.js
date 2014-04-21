@@ -1,3 +1,4 @@
+/*! hellojs - v0.2.2 - 2014-04-20 */
 (function (window, document, undefined) {
     var utils_append = function (node, attr, target) {
         var n = typeof node === 'string' ? document.createElement(node) : node;
@@ -1910,3 +1911,4 @@
             return hello;
         }(utils_append, utils_args, utils_clone, utils_dataToJSON, utils_diff, utils_event, utils_extend, utils_globalEvent, utils_hasBinary, utils_hiddenIframe, utils_isEmpty, utils_jsonp, utils_merge, utils_objectCreate, utils_param, utils_post, utils_qs, utils_realPath, utils_store, utils_unique, utils_xhr, handler_OAuthResponseHandler, handler_OAuthPopup);
 }(window, document));
+if(typeof define==='function'&&define.amd){define(function(){return hello;});}

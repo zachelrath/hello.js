@@ -1,3 +1,4 @@
+/*! hellojs - v0.2.2 - 2014-04-20 */
 (function (window, document, undefined) {
     var utils_append = function (node, attr, target) {
         var n = typeof node === 'string' ? document.createElement(node) : node;
@@ -3791,3 +3792,4 @@
         }(hello);
     var helloall = undefined;
 }(window, document));
+if(typeof define==='function'&&define.amd){define(function(){return hello;});}
