@@ -47,6 +47,7 @@
     "grunt-contrib-watch": "^0.6.1",
     "grunt-contrib-requirejs": "^0.4.3",
     "amdclean": "^1.5.0",
-    "grunt-contrib-concat": "^0.4.0"
+    "grunt-contrib-concat": "^0.4.0",
+    "grunt-contrib-uglify": "^0.4.0"
   }
 }

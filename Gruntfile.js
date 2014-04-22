@@ -10,11 +10,15 @@ module.exports = function(grunt) {
 		return a;
 	}
 
-	function concat(name){
-		return {
-			src: ['dist/'+name+'.js', 'src/hello.amd.js'],//, 'test/**/*.js'],
+	function concat(name,define){
+		var obj = {
+			src: ['dist/'+name+'.js'],//, 'test/**/*.js'],
 			dest : 'dist/'+name+'.js'
 		};
+		if(define){
+			obj.src.push('src/hello.amd.js');
+		}
+		return obj;
 	}
 
 	function require_options(name, opts){
@@ -50,18 +54,9 @@ module.exports = function(grunt) {
 	grunt.initConfig({
 		pkg: grunt.file.readJSON('package.json'),
 		requirejs : {
-			develop : require_options('hello'),
-			minified : require_options('hello',{
-				optimize: "uglify2"
-			}),
-			all_develop : require_options('hello.all'),
-			all_minified : require_options('hello.all',{
-				optimize: "uglify2"
-			}),
-			redirect_develop : require_options('hello.redirect'),
-			redirect_minified : require_options('hello.redirect',{
-				optimize: "uglify2"
-			})
+			hello		: require_options('hello'),
+			hello_all	: require_options('hello.all'),
+			redirect	: require_options('hello.redirect'),
 		},
 		concat: {
 			options: {
@@ -69,10 +64,22 @@ module.exports = function(grunt) {
 				banner: '/*! <%= pkg.name %> - v<%= pkg.version %> - ' +
 				'<%= grunt.template.today("yyyy-mm-dd") %> */\n',
 			},
-			develop : concat('hello'),
-			minified : concat('hello.min'),
-			all_develop : concat('hello.all'),
-			all_minified : concat('hello.all.min')
+			hello		: concat('hello', true),
+			hello_all	: concat('hello.all', true),
+			redirect	: concat('hello.redirect'),
+		},
+		uglify : {
+			options :{
+				preserveComments : 'some',
+				report : 'gzip'
+			},
+			build : {
+				files : {
+					'dist/hello.min.js' : 'dist/hello.js',
+					'dist/hello.all.min.js' : 'dist/hello.all.js',
+					'dist/hello.redirect.min.js' : 'dist/hello.redirect.js'
+				}
+			}
 		},
 		jshint: {
 			files: ['Gruntfile.js', 'src/**/*.js'],//, 'test/**/*.js'],
@@ -114,9 +121,10 @@ module.exports = function(grunt) {
 	grunt.loadNpmTasks('grunt-contrib-watch');
 	grunt.loadNpmTasks('grunt-contrib-concat');
 	grunt.loadNpmTasks('grunt-contrib-requirejs');
+	grunt.loadNpmTasks('grunt-contrib-uglify');
 	grunt.loadNpmTasks('shunt');
 
 	grunt.registerTask('test', ['jshint']);
-	grunt.registerTask('default', ['jshint', 'requirejs', 'concat']);
+	grunt.registerTask('default', ['jshint', 'requirejs', 'concat', 'uglify']);
 
 };
