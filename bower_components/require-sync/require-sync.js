@@ -36,11 +36,11 @@
 	//
 	// Real path
 	//
-	function realpath(item, name){
-		if(item.match(/^\.(\.)?\//)){
-			item = ( name.replace(/[^\/]+$/,'') + item ).replace(/\/[^\/]+\/\.\.\//,'/').replace(/\/\.\//,'/');
+	function realpath(path, referer){
+		if(path.match(/^\.(\.)?\//)){
+			path = ( referer.replace(/[^\/]+$/,'') + path ).replace(/\/[^\/]+\/\.\.\//,'/').replace(/\/\.\//,'/');
 		}
-		return item;
+		return path;
 	}
 
 	//
