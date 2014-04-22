@@ -4,7 +4,7 @@
 // This function checks whether the form contains binary data
 
 define([
-	'utils/domInstance'
+	'./domInstance'
 ],function(domInstance){
 
 	return function (data){

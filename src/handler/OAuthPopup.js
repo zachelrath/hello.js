@@ -3,8 +3,8 @@
 //
 
 define([
-	'utils/parseURL',
-	'handler/OAuthResponseHandler'
+	'../utils/parseURL',
+	'./OAuthResponseHandler'
 ], function(
 	parseURL,
 	OAuthResponseHandler

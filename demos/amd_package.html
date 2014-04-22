@@ -13,7 +13,14 @@
 
 <h2>Load modules</h2>
 <script class="pre">
-	require( ["../dist/hello.all", "./client_ids"], function(hello){
+
+	require( [
+		  '../src/hello'
+		, 'client_ids'
+		, '../src/modules/windows'
+		, '../src/modules/facebook'
+		, '../src/modules/google'
+	], function(hello){
 
 		hello.on('auth.login', function(r){
 			// Get Profile

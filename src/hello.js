@@ -15,31 +15,31 @@
 
 
 define([
-	'utils/append',
-	'utils/args',
-	'utils/clone',
-	'utils/dataToJSON',
-	'utils/diff',
-	'utils/event',
-	'utils/extend',
-	'utils/globalEvent',
-	'utils/hasBinary',
-	'utils/hiddenIframe',
-	'utils/isEmpty',
-	'utils/jsonp',
-	'utils/merge',
-	'utils/objectCreate',
-	'utils/param',
-	'utils/post',
-	'utils/qs',
-	'utils/realPath',
-	'utils/store',
-	'utils/unique',
-	'utils/xhr',
+	'./utils/append',
+	'./utils/args',
+	'./utils/clone',
+	'./utils/dataToJSON',
+	'./utils/diff',
+	'./utils/event',
+	'./utils/extend',
+	'./utils/globalEvent',
+	'./utils/hasBinary',
+	'./utils/hiddenIframe',
+	'./utils/isEmpty',
+	'./utils/jsonp',
+	'./utils/merge',
+	'./utils/objectCreate',
+	'./utils/param',
+	'./utils/post',
+	'./utils/qs',
+	'./utils/realPath',
+	'./utils/store',
+	'./utils/unique',
+	'./utils/xhr',
 
 	// handler
-	'handler/OAuthResponseHandler',
-	'handler/OAuthPopup'
+	'./handler/OAuthResponseHandler',
+	'./handler/OAuthPopup'
 
 ],function(
 

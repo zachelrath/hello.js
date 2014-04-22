@@ -1,7 +1,7 @@
 //
 // Linkedin
 //
-define(['hello'],function(hello){
+define(['../hello'],function(hello){
 
 function formatError(o){
 	if(o && "errorCode" in o){

@@ -3,8 +3,8 @@
 // This uses CORS to make requests
 //
 define([
-	'utils/isEmpty',
-	'utils/merge'
+	'./isEmpty',
+	'./merge'
 ],function(isEmpty, merge){
 
 	return function(method, pathFunc, headers, data, callback){

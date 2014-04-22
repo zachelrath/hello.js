@@ -4,8 +4,8 @@
 //
 define([
 
-	'utils/domInstance',
-	'utils/nodeListToJSON'
+	'./domInstance',
+	'./nodeListToJSON'
 
 ],function(domInstance, nodeListToJSON){
 

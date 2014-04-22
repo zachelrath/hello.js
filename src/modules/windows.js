@@ -3,8 +3,8 @@
 //
 
 define([
-	'hello',
-	'utils/hasBinary'
+	'../hello',
+	'../utils/hasBinary'
 ],function(
 	hello,
 	hasBinary

@@ -2,13 +2,13 @@
 // GOOGLE API
 //
 define([
-	'hello',
-	'utils/append',
-	'utils/domInstance',
-	'utils/hasBinary',
-	'utils/param',
-	'utils/qs',
-	'utils/xhr'
+	'../hello',
+	'../utils/append',
+	'../utils/domInstance',
+	'../utils/hasBinary',
+	'../utils/param',
+	'../utils/qs',
+	'../utils/xhr'
 ],function(
 	hello,
 	append,

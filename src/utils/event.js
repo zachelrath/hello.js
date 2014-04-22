@@ -3,7 +3,7 @@
 // A contructor superclass for adding event menthods, on, off, emit.
 //
 define([
-	'utils/indexOf'
+	'./indexOf'
 ],function(
 	indexOf
 ){

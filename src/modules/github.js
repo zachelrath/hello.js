@@ -1,7 +1,7 @@
 //
 // GitHub
 //
-define(['hello'],function(hello){
+define(['../hello'],function(hello){
 
 function formatError(o,headers){
 	var code = headers ? headers.statusCode : ( o && "meta" in o && "status" in o.meta && o.meta.status );

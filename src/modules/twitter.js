@@ -1,7 +1,7 @@
 //
 // Twitter
 //
-define(['hello'],function(hello){
+define(['../hello'],function(hello){
 
 
 function formatUser(o){

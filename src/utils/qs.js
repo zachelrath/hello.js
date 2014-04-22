@@ -2,8 +2,8 @@
 // Querystring
 //
 define([
-	'utils/param',
-	'utils/isEmpty'
+	'./param',
+	'./isEmpty'
 ], function( param, isEmpty ){
 	
 	// Append the querystring to a url

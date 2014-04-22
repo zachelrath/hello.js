@@ -2,8 +2,8 @@
 // Dropbox
 //
 define([
-	'hello',
-	'utils/param'
+	'../hello',
+	'../utils/param'
 ], function(
 	hello,
 	param

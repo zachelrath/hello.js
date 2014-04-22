@@ -6,8 +6,8 @@
 // @param function callback, function to execute in response
 //
 define([
-	'utils/domInstance',
-	'utils/globalEvent'
+	'./domInstance',
+	'./globalEvent'
 ],function(domInstance,globalEvent){
 
 	return function(pathFunc, data, options, callback, callbackID, timeout){

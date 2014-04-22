@@ -3,7 +3,7 @@
 // remove duplicate and null values from an array
 // @param a array
 //
-define(['utils/indexOf'],function(indexOf){
+define(['./indexOf'],function(indexOf){
 	return function(a){
 		if(typeof(a)!=='object'){ return []; }
 		var r = [];

@@ -1,7 +1,7 @@
 //
 // Flickr
 //
-define(['hello'],function(hello){
+define(['../hello'],function(hello){
 
 
 function getApiUrl(method, extra_params, skip_network){

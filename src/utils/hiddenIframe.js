@@ -1,7 +1,7 @@
 //
 // Hidden iFrame
 //
-define(['utils/append'],function(append){
+define(['./append'],function(append){
 
 	return function(url){
 		return append('iframe', {

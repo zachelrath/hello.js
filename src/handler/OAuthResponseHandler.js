@@ -4,9 +4,9 @@
 // Saving credentials which are shared from the window.location object
 //
 define([
-	'utils/merge',
-	'utils/store',
-	'utils/param'
+	'../utils/merge',
+	'../utils/store',
+	'../utils/param'
 ],function(
 	merge,
 	store,

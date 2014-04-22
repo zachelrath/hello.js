@@ -5,8 +5,8 @@
 // @param function callback a function to call on completion;
 //
 define([
-	'utils/append',
-	'utils/globalEvent'
+	'./append',
+	'./globalEvent'
 ],function( append, globalEvent ){
 
 	return function(pathFunc,callback,callbackID,timeout){
