@@ -25,11 +25,11 @@ define(function(){
 		
 			a = [];
 
-			for( var x in o ){if(o.hasOwnProperty(x)){
+			for( var x in o ){
 				if( o.hasOwnProperty(x) ){
 					a.push( [x, o[x] === '?' ? '?' : encodeURIComponent(o[x]) ].join('=') );
 				}
-			}}
+			}
 
 			return a.join('&');
 		}
