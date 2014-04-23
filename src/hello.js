@@ -448,11 +448,6 @@ extend( hello, {
 			// Create the OAuth Popup
 			var popup = OAuthPopup( url, opts.redirect_uri, opts.window_width || 500, opts.window_height || 500 );
 
-			// Ensure popup window has focus upon reload, Fix for FF.
-			if(popup&&popup.focus){
-				popup.focus();
-			}
-
 			var timer = setInterval(function(){
 				if(popup.closed){
 					clearInterval(timer);

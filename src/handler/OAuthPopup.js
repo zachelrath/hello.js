@@ -42,6 +42,10 @@ define([
 			// PhoneGap support
 			// Add an event listener to listen to the change in the popup windows URL
 			// This must appear before popup.focus();
+			if( !popup.addEventListener ){
+				return popup;
+			}
+
 			popup.addEventListener('loadstart', function(e){
 
 				var url = e.url;
