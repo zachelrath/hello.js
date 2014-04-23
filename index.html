@@ -679,11 +679,22 @@ used - because of the XD, IFrame+Form+hack.</li>
 
 
 <script src="/_packages/knockout.js"></script>
+<script src="./bower_components/require-sync/require-sync.js"></script>
 <script src="assets/index.js"></script>
+
 <script type="text/html" id="tests-template"></script>
 
 <!--NO-MARKDOWN-->
 <script>
+
+//
+// dataToJSON
+//
+var dataToJSON;
+define( ['./src/utils/dataToJSON'], function(_dataToJSON){
+	dataToJSON = _dataToJSON;
+});
+
 // Initiate the library
 hello.init(CLIENT_IDS_ALL,{redirect_uri: 'redirect.html', oauth_proxy:OAUTH_PROXY_URL});
 

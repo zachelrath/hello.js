@@ -55,6 +55,12 @@
 <script src="../assets/index.js"></script>
 
 <script>
+//
+var dataToJSON;
+define( ['../src/utils/dataToJSON'], function(_dataToJSON){
+	dataToJSON = _dataToJSON;
+});
+
 
 // Initiate the library
 hello.init(

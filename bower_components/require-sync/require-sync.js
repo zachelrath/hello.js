@@ -37,7 +37,7 @@
 	// Real path
 	//
 	function realpath(path, referer){
-		if(path.match(/^\.(\.)?\//)){
+		if(path.match(/^\.(\.)?\//) && referer){
 			path = ( referer.replace(/[^\/]+$/,'') + path ).replace(/\/[^\/]+\/\.\.\//,'/').replace(/\/\.\//,'/');
 		}
 		return path;

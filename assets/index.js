@@ -700,7 +700,7 @@ function Test(test,network,parent){
 			test.data = document.getElementById(parent.formId());
 
 			// Format the data now
-			hello.utils.dataToJSON(test);
+			dataToJSON(test);
 
 			/*
 			var form = document.getElementById(parent.formId());

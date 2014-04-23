@@ -3,10 +3,19 @@
 //
 define([
 	'../hello',
-	'../utils/hasBinary'
+	'../utils/hasBinary',
+	'../utils/globalEvent',
+	'../utils/hiddeniframe',
+	'../utils/store',
+	'../utils/param'
+
 ],function(
 	hello,
-	hasBinary
+	hasBinary,
+	globalEvent,
+	hiddeniframe,
+	store,
+	param
 ){
 
 function formatUser(o){
@@ -67,10 +76,10 @@ hello.init({
 
 		logout : function(callback){
 			// Assign callback to a global handler
-			var callbackID = hello.utils.globalEvent( callback );
-			var redirect = encodeURIComponent( hello.settings.redirect_uri + "?" + hello.utils.param( { callback:callbackID, result : JSON.stringify({force:true}), state : '{}' } ) );
-			var token = (hello.utils.store('facebook')||{}).access_token;
-			hello.utils.iframe( 'https://www.facebook.com/logout.php?next='+ redirect +'&access_token='+ token );
+			var callbackID = globalEvent( callback );
+			var redirect = encodeURIComponent( hello.settings.redirect_uri + "?" + param( { callback:callbackID, result : JSON.stringify({force:true}), state : '{}' } ) );
+			var token = (store('facebook')||{}).access_token;
+			hiddeniframe( 'https://www.facebook.com/logout.php?next='+ redirect +'&access_token='+ token );
 
 			// Possible responses
 			// String URL	- hello.logout should handle the logout
