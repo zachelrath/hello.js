@@ -42,16 +42,15 @@ define([
 			// PhoneGap support
 			// Add an event listener to listen to the change in the popup windows URL
 			// This must appear before popup.focus();
-			if( !popup.addEventListener ){
-				return popup;
-			}
+			if( popup.addEventListener ){
+				popup.addEventListener('loadstart', function(e){
 
-			popup.addEventListener('loadstart', function(e){
+					var url = e.url;
 
-				var url = e.url;
-
-				// Is this the path, as given by the redirect_uri?
-				if(url.indexOf(redirect_uri)===0){
+					// Is this the path, as given by the redirect_uri?
+					if(url.indexOf(redirect_uri)!==0){
+						return;
+					}
 
 					// We dont have window operations on the popup so lets create some
 					// The location can be augmented in to a location object like so...
@@ -94,8 +93,17 @@ define([
 					// Window - any action such as window relocation goes here
 					// Opener - the parent window which opened this, aka this script
 					OAuthResponseHandler( _popup, window );
-				}
-			});
+				});
+			}
+
+
+			//
+			// focus on this popup
+			//
+			if( popup && popup.focus ){
+				popup.focus();
+			}
+
 
 			return popup;
 		};
