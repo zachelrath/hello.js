@@ -1,4 +1,4 @@
-/*! hellojs - v0.2.2 - 2014-04-20 */
+/*! hellojs - v0.2.2 - 2014-04-23 */
 (function (window, document, undefined) {
     var utils_append = function (node, attr, target) {
         var n = typeof node === 'string' ? document.createElement(node) : node;
@@ -486,12 +486,10 @@
             a = [];
             for (var x in o) {
                 if (o.hasOwnProperty(x)) {
-                    if (o.hasOwnProperty(x)) {
-                        a.push([
-                            x,
-                            o[x] === '?' ? '?' : encodeURIComponent(o[x])
-                        ].join('='));
-                    }
+                    a.push([
+                        x,
+                        o[x] === '?' ? '?' : encodeURIComponent(o[x])
+                    ].join('='));
                 }
             }
             return a.join('&');
@@ -1021,7 +1019,7 @@
     var utils_parseURL = function (url) {
         var a = document.createElement('a');
         a.href = url;
-        return;
+        return a;
     };
     var handler_OAuthPopup = function (parseURL, OAuthResponseHandler) {
             // Help the minifier
@@ -1045,10 +1043,13 @@
                     // PhoneGap support
                     // Add an event listener to listen to the change in the popup windows URL
                     // This must appear before popup.focus();
-                    popup.addEventListener('loadstart', function (e) {
-                        var url = e.url;
-                        // Is this the path, as given by the redirect_uri?
-                        if (url.indexOf(redirect_uri) === 0) {
+                    if (popup.addEventListener) {
+                        popup.addEventListener('loadstart', function (e) {
+                            var url = e.url;
+                            // Is this the path, as given by the redirect_uri?
+                            if (url.indexOf(redirect_uri) !== 0) {
+                                return;
+                            }
                             // We dont have window operations on the popup so lets create some
                             // The location can be augmented in to a location object like so...
                             var a = parseURL(url);
@@ -1085,8 +1086,14 @@
                             // Window - any action such as window relocation goes here
                             // Opener - the parent window which opened this, aka this script
                             OAuthResponseHandler(_popup, window);
-                        }
-                    });
+                        });
+                    }
+                    //
+                    // focus on this popup
+                    //
+                    if (popup && popup.focus) {
+                        popup.focus();
+                    }
                     return popup;
                 };
                 //
@@ -1404,10 +1411,6 @@
                         //
                         // Create the OAuth Popup
                         var popup = OAuthPopup(url, opts.redirect_uri, opts.window_width || 500, opts.window_height || 500);
-                        // Ensure popup window has focus upon reload, Fix for FF.
-                        if (popup && popup.focus) {
-                            popup.focus();
-                        }
                         var timer = setInterval(function () {
                                 if (popup.closed) {
                                     clearInterval(timer);
@@ -2084,7 +2087,21 @@
                 }
             });
         }(hello, utils_param);
-    var modules_facebook = function (hello, hasBinary) {
+    var utils_hiddeniframe = function (append) {
+            return function (url) {
+                return append('iframe', {
+                    src: url,
+                    style: {
+                        position: 'absolute',
+                        left: '-1000px',
+                        bottom: 0,
+                        height: '1px',
+                        width: '1px'
+                    }
+                }, 'body');
+            };
+        }(utils_append);
+    var modules_facebook = function (hello, hasBinary, globalEvent, hiddeniframe, store, param) {
             function formatUser(o) {
                 if (o.id) {
                     o.thumbnail = o.picture = 'http://graph.facebook.com/' + o.id + '/picture';
@@ -2136,14 +2153,14 @@
                     },
                     logout: function (callback) {
                         // Assign callback to a global handler
-                        var callbackID = hello.utils.globalEvent(callback);
-                        var redirect = encodeURIComponent(hello.settings.redirect_uri + '?' + hello.utils.param({
+                        var callbackID = globalEvent(callback);
+                        var redirect = encodeURIComponent(hello.settings.redirect_uri + '?' + param({
                                 callback: callbackID,
                                 result: JSON.stringify({ force: true }),
                                 state: '{}'
                             }));
-                        var token = (hello.utils.store('facebook') || {}).access_token;
-                        hello.utils.iframe('https://www.facebook.com/logout.php?next=' + redirect + '&access_token=' + token);
+                        var token = (store('facebook') || {}).access_token;
+                        hiddeniframe('https://www.facebook.com/logout.php?next=' + redirect + '&access_token=' + token);
                         // Possible responses
                         // String URL	- hello.logout should handle the logout
                         // undefined	- this function will handle the callback
@@ -2235,7 +2252,7 @@
                     }
                 }
             });
-        }(hello, utils_hasBinary);
+        }(hello, utils_hasBinary, utils_globalEvent, utils_hiddeniframe, utils_store, utils_param);
     var modules_flickr = function (hello) {
             function getApiUrl(method, extra_params, skip_network) {
                 var url = (skip_network ? '' : 'flickr:') + '?method=' + method + '&api_key=' + hello.init().flickr.id + '&format=json';
@@ -3792,4 +3809,12 @@
         }(hello);
     var helloall = undefined;
 }(window, document));
-if(typeof define==='function'&&define.amd){define(function(){return hello;});}
+//
+// AMD shim to expose the HelloJS library
+//
+if (typeof define === 'function' && define.amd) {
+	// AMD. Register as an anonymous module.
+	define(function(){
+		return hello;
+	});
+}

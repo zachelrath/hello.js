@@ -1,3 +1,4 @@
+/*! hellojs - v0.2.2 - 2014-04-23 */
 (function (window, document, undefined) {
     var utils_merge = function merge(a, b) {
         var x, r = {};
@@ -93,12 +94,10 @@
             a = [];
             for (var x in o) {
                 if (o.hasOwnProperty(x)) {
-                    if (o.hasOwnProperty(x)) {
-                        a.push([
-                            x,
-                            o[x] === '?' ? '?' : encodeURIComponent(o[x])
-                        ].join('='));
-                    }
+                    a.push([
+                        x,
+                        o[x] === '?' ? '?' : encodeURIComponent(o[x])
+                    ].join('='));
                 }
             }
             return a.join('&');
