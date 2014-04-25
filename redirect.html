@@ -15,21 +15,16 @@ This page is used for authentication as well as POST using the Iframe+form+hash 
 </head>
 <body>
 
-<script src="node_modules/requirejs/require.js"></script>
+<script src="bower_components/require-sync/require-sync.js"></script>
 <script>
 
-require.config({
-	baseUrl: 'src/'
-});
-
 require([
-	'hello',
+	'./src/hello',
 ], function(){
 
 	// DEBUG
-	// The sign in has failed, if the window is not returned, probably because the hash is wrong
-	// Add the hash to the window for debugging purposes.
-	document.body.appendChild(document.createTextNode("Failed to recognize URL query: "+window.location.href));
+	// Add this full URL to the window for debugging purposes.
+	document.body.appendChild(document.createTextNode("Processing incoming request: "+window.location.href));
 
 });
 	</script>
