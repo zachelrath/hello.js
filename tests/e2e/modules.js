@@ -1,4 +1,8 @@
-
+define([
+	'../../src/utils/hello.all'
+], function(
+	hello
+){
 
 //
 // Modules are of the following formats
@@ -64,3 +68,5 @@ function setup_module_tests(module, name){
 
 	});
 }
+
+});

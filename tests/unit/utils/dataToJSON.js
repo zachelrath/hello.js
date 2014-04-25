@@ -1,3 +1,10 @@
+define([
+	'../../src/utils/dataToJSON'
+], function(
+	dataToJSON
+){
+
+
 
 
 describe('Hello API', function(){
@@ -36,5 +43,8 @@ describe('Hello API', function(){
 			}
 		});
 	});
+
+});
+
 
 });

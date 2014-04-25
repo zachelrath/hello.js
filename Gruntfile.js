@@ -99,6 +99,13 @@ module.exports = function(grunt) {
 			tasks: ['jshint']
 		},
 
+		karma : {
+			unit: {
+				configFile: 'karma.conf.js'
+//				autoWatch: true
+			}
+		},
+
 		// Shunt files around
 		shunt : {
 			// Shunt the documents of our project
@@ -122,6 +129,7 @@ module.exports = function(grunt) {
 	grunt.loadNpmTasks('grunt-contrib-concat');
 	grunt.loadNpmTasks('grunt-contrib-requirejs');
 	grunt.loadNpmTasks('grunt-contrib-uglify');
+	grunt.loadNpmTasks('grunt-karma');
 	grunt.loadNpmTasks('shunt');
 
 	grunt.registerTask('test', ['jshint']);
