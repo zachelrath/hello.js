@@ -1,5 +1,5 @@
 define([
-	'../../src/utils/hello.all'
+	'../../../src/hello.all'
 ], function(
 	hello
 ){
@@ -8,6 +8,8 @@ define([
 // Modules are of the following formats
 //
 
+describe( 'Modules', function(){
+
 // Loop through all services
 for(var name in hello.services){
 	setup_module_tests(hello.services[name], name);
@@ -15,7 +17,7 @@ for(var name in hello.services){
 
 function setup_module_tests(module, name){
 
-	describe( module.name || name + ' Module', function(){
+	describe( name , function(){
 
 		var MATCH_URL = /^https?\:\/\//;
 
@@ -68,5 +70,5 @@ function setup_module_tests(module, name){
 
 	});
 }
-
+});
 });

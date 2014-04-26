@@ -101,10 +101,19 @@ module.exports = function(grunt) {
 
 		karma : {
 			unit: {
-				configFile: 'karma.conf.js'
+				configFile: 'tests/karma.conf.js'
 //				autoWatch: true
 			}
 		},
+
+		mocha_phantomjs: {
+			options: {
+				//'reporter': 'xunit',
+				//'output': 'test/results/mocha.xml'
+			},
+			all: ['tests/specs/index.html'],
+		},
+
 
 		// Shunt files around
 		shunt : {
@@ -129,10 +138,11 @@ module.exports = function(grunt) {
 	grunt.loadNpmTasks('grunt-contrib-concat');
 	grunt.loadNpmTasks('grunt-contrib-requirejs');
 	grunt.loadNpmTasks('grunt-contrib-uglify');
+	grunt.loadNpmTasks('grunt-mocha-phantomjs');
 	grunt.loadNpmTasks('grunt-karma');
 	grunt.loadNpmTasks('shunt');
 
-	grunt.registerTask('test', ['jshint']);
-	grunt.registerTask('default', ['jshint', 'requirejs', 'concat', 'uglify']);
+	grunt.registerTask('test', ['jshint', 'mocha_phantomjs']);
+	grunt.registerTask('default', ['test', 'requirejs', 'concat', 'uglify']);
 
 };

@@ -1,5 +1,5 @@
 define([
-	'../../src/utils/events'
+	'../../../../src/utils/event'
 ], function(
 	Event
 ){
@@ -9,7 +9,7 @@ define([
 //
 // Events
 //
-describe('Events', function(){
+describe('utils / event', function(){
 
 	var hello = new Event();
 
@@ -46,14 +46,6 @@ describe('Events', function(){
 			expect( !spy.called ).to.be.ok();
 			done();
 		},10);
-
-	});
-	it('should trigger event on instance', function(done){
-
-		// Make request
-		var boom = hello("boom");
-		boom.on(event_name, test_response(done));
-		boom.emit(event_name, arbitary_data);
 
 	});
 });

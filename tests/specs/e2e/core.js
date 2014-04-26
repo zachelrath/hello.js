@@ -1,5 +1,5 @@
 define([
-	'../../src/hello'
+	'../../../src/hello'
 ], function(
 	hello
 ){

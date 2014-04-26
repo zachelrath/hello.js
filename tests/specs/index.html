@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="Content-type" content="text/html; charset=utf-8">
+    <title>tests</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/mocha/1.18.2/mocha.min.css" media="screen" rel="stylesheet" type="text/css" />
+  </head>
+  <body>
+      <!-- Required for browser reporter -->
+      <div id="mocha"></div>
+      <div id="test"></div>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/mocha/1.18.2/mocha.min.js" type="text/javascript" charset="utf-8"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/expect.js/0.2.0/expect.min.js" type="text/javascript" charset="utf-8"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/sinon.js/1.7.3/sinon-min.js" type="text/javascript" charset="utf-8"></script>
+
+      <script src="../../bower_components/require-sync/require-sync.js"></script>
+
+      <script>
+
+        require.config({
+          urlArgs: '_=' + ( new Date() )
+        });
+
+      </script>
+
+      <script type="text/javascript" charset="utf-8">
+          mocha.ui('bdd');
+          //expect = chai.expect;
+          //assert = chai.assert;
+      </script>
+      
+      <script>
+        require([
+          './unit/utils/dataToJSON',
+          './unit/utils/events',
+
+          './e2e/core',
+         './e2e/modules'
+        ], function(){
+          if (window.mochaPhantomJS) { mochaPhantomJS.run(); }
+          else { mocha.run(); }
+        });
+      </script>      
+  </body>
+</html>

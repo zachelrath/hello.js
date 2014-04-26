@@ -2,6 +2,7 @@
 // hello.all
 //
 define([
+	'./hello',
 	'./modules/dropbox',
 	'./modules/facebook',
 	'./modules/flickr',
@@ -14,4 +15,8 @@ define([
 	'./modules/twitter',
 	'./modules/windows',
 	'./modules/yahoo'
-],function(){});
+],function(hello){
+
+	return hello;
+
+});
