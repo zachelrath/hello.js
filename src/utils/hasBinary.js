@@ -4,16 +4,15 @@
 // This function checks whether the form contains binary data
 
 define([
-	'./domInstance'
-],function(domInstance){
+	'./domInstance',
+	'./isBinary'
+],function(domInstance, isBinary){
 
 	return function (data){
-		var w = window;
+
 		for(var x in data ) if(data.hasOwnProperty(x)){
-			if( (domInstance('input', data[x]) && data[x].type === 'file')	||
-				("FileList" in w && data[x] instanceof w.FileList) ||
-				("File" in w && data[x] instanceof w.File) ||
-				("Blob" in w && data[x] instanceof w.Blob)
+			if( (domInstance('input', data[x]) && data[x].type === 'file') ||
+				isBinary( data[x] )
 			){
 				return true;
 			}

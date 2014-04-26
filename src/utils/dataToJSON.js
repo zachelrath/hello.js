@@ -5,9 +5,10 @@
 define([
 
 	'./domInstance',
-	'./nodeListToJSON'
+	'./nodeListToJSON',
+	'./isBinary'
 
-],function(domInstance, nodeListToJSON){
+],function(domInstance, nodeListToJSON, isBinary){
 
 	return function(p){
 
@@ -31,9 +32,7 @@ define([
 		}
 
 		// Is data a blob, File, FileList?
-		if( ("File" in window && data instanceof window.File) ||
-			("Blob" in window && data instanceof window.Blob) ||
-			("FileList" in window && data instanceof window.FileList) ){
+		if( isBinary(data) ){
 
 			// Convert to a JSON object
 			data = {'file' : data};
