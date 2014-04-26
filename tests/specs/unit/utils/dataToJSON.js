@@ -4,6 +4,10 @@ define([
 	dataToJSON
 ){
 
+	//
+	// Test
+	//
+	var test = document.getElementById('test');
 
 	//
 	// Are errors thrown if an invalid network is provided
@@ -13,7 +17,7 @@ define([
 		it('should extrapolate the data in a form', function(){
 
 			// Create a form
-			document.getElementById('test').innerHTML = "<form id='form'>"+
+			test.innerHTML = "<form id='form'>"+
 				["<input name='key' value='value'/>",
 				"<input name='key2' value='value2'/>",
 				"<input name='file' type='file'/>"].join()+
