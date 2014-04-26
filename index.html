@@ -874,18 +874,20 @@ used - because of the XD, IFrame+Form+hack.</li>
 
 
 <h3>Changing code?</h3>
-<p>Please adopt the continuous integration tests.</p>
+<p>Please adopt the tests.</p>
+
 
 <pre>
 	# Using NodeJS on your dev environment
 	# cd into the project root and install dev dependencies 
 	npm install -l
 
-	# run continuous integration tests
-	npm test
+	# run tests in phantomjs
+	grunt test
+
 </pre>
 
-<p>Open a couple of browsers with the given URL (e.g. it'll say "Karma v0.9.8 server started at http://localhost:9876/"). The tests are triggered when the code is modified</p>
+<p><strike>Open a couple of browsers with the given URL (e.g. it'll say "Karma v0.9.8 server started at http://localhost:9876/"). The tests are triggered when the code is modified</strike></p>
 
 
 <script src="/_packages/knockout.js"></script>

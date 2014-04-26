@@ -14,10 +14,10 @@ module.exports = function (karma) {
 			{ pattern: 'node_modules/sinon/pkg/sinon.js', watched: false, included: true },
 			{ pattern: 'src/*/*.js', included: false },
 			{ pattern: 'src/*.js', included: false },
-			{ pattern: 'tests/e2e/*/*.js', included: false },
-			{ pattern: 'tests/e2e/*.js', included: false },
-			{ pattern: 'tests/unit/*/*.js', included: false },
-			{ pattern: 'tests/unit/*.js', included: false }
+			{ pattern: 'tests/specs/e2e/*/*.js', included: false },
+			{ pattern: 'tests/specs/e2e/*.js', included: false },
+			{ pattern: 'tests/specs/unit/*/*.js', included: false },
+			{ pattern: 'tests/specs/unit/*.js', included: false }
 		],
 
 
