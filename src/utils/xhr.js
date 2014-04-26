@@ -4,8 +4,17 @@
 //
 define([
 	'./isEmpty',
-	'./merge'
-],function(isEmpty, merge){
+	'./merge',
+	'./isBinary',
+	'./domInstance',
+	'./xhrHeadersToJSON'
+],function(
+	isEmpty,
+	merge,
+	isBinary,
+	domInstance,
+	xhrHeadersToJSON
+){
 
 	return function(method, pathFunc, headers, data, callback){
 
@@ -40,7 +49,7 @@ define([
 					};
 				}
 			}
-			var headers = headersToJSON(r.getAllResponseHeaders());
+			var headers = xhrHeadersToJSON(r.getAllResponseHeaders());
 			headers.statusCode = r.status;
 
 			callback( json || ( method!=='DELETE' ? {error:{message:"Could not get resource"}} : {} ), headers );
@@ -66,11 +75,11 @@ define([
 			}
 			data = null;
 		}
-		else if( data && typeof(data) !== 'string' && !(data instanceof FormData) && !(data instanceof File) && !(data instanceof Blob)){
+		else if( data && typeof(data) !== 'string' && !(data instanceof FormData) && !isBinary(data) ){
 			// Loop through and add formData
 			var f = new FormData();
 			for( x in data )if(data.hasOwnProperty(x)){
-				if( data[x] instanceof HTMLInputElement ){
+				if( domInstance( "input", data[x] ) ){
 					if( "files" in data[x] && data[x].files.length > 0){
 						f.append(x, data[x].files[0]);
 					}
@@ -114,19 +123,6 @@ define([
 
 		return r;
 
-
-		//
-		// headersToJSON
-		// Headers are returned as a string, which isn't all that great... is it?
-		function headersToJSON(s){
-			var r = {};
-			var reg = /([a-z\-]+):\s?(.*);?/gi,
-				m;
-			while((m = reg.exec(s))){
-				r[m[1]] = m[2];
-			}
-			return r;
-		}
 	};
 
 
