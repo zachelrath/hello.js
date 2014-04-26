@@ -82,7 +82,7 @@ module.exports = function(grunt) {
 			}
 		},
 		jshint: {
-			files: ['Gruntfile.js', 'src/**/*.js'],//, 'test/**/*.js'],
+			files: ['Gruntfile.js', 'src/**/*.js', 'tests/**/*.js'],
 			options: {
 				// options here to override JSHint defaults
 				globals: {
@@ -90,7 +90,9 @@ module.exports = function(grunt) {
 					module: true,
 					document: true
 				},
-				// dont check dot notation
+				// sub=true, aka: dont check dot notation
+				// Reason:  The Google response handler contains the '$' character, e.g. feed['media$content']
+				//			written in dot notation this looks particulary confusing and messes with IDE's syntax highlighting.
 				sub :true
 			}
 		},
