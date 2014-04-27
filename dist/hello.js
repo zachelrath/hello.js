@@ -1,4 +1,4 @@
-/*! hellojs - v0.2.2 - 2014-04-26 */
+/*! hellojs - v0.2.2 - 2014-04-27 */
 (function (window, document, undefined) {
     var utils_append = function (node, attr, target) {
         var n = typeof node === 'string' ? document.createElement(node) : node;
@@ -200,8 +200,7 @@
                 this.parent = {
                     events: this.events,
                     findEvents: this.findEvents,
-                    parent: this.parent,
-                    utils: this.utils
+                    parent: this.parent
                 };
                 this.events = {};
                 //
@@ -251,7 +250,7 @@
                     var proto = this;
                     while (proto && proto.findEvents) {
                         proto.findEvents(evt, handler);
-                        // proto = this.utils.getPrototypeOf(proto);
+                        // proto = getPrototypeOf(proto);
                         proto = proto.parent;
                     }
                     return this;
@@ -501,7 +500,6 @@
     };
     var utils_post = function (domInstance, globalEvent) {
             return function (pathFunc, data, options, callback, callbackID, timeout) {
-                var utils = this, doc = document;
                 // The URL is a function for some cases and as such
                 // Determine its value with a callback containing the new parameters of this function.
                 if (typeof pathFunc !== 'function') {
@@ -524,9 +522,9 @@
                 var win;
                 try {
                     // IE7 hack, only lets us define the name here, not later.
-                    win = doc.createElement('<iframe name="' + callbackID + '">');
+                    win = document.createElement('<iframe name="' + callbackID + '">');
                 } catch (e) {
-                    win = doc.createElement('iframe');
+                    win = document.createElement('iframe');
                 }
                 win.name = callbackID;
                 win.id = callbackID;
@@ -551,7 +549,7 @@
                         });
                     }, timeout);
                 }
-                doc.body.appendChild(win);
+                document.body.appendChild(win);
                 // if we are just posting a single item
                 if (domInstance('form', data)) {
                     // get the parent form
@@ -591,8 +589,8 @@
                     // Do If there is no defined form element, lets create one.
                     if (!form) {
                         // Build form
-                        form = doc.createElement('form');
-                        doc.body.appendChild(form);
+                        form = document.createElement('form');
+                        document.body.appendChild(form);
                         newform = form;
                     }
                     var input;
@@ -615,7 +613,7 @@
                                     }
                                 }
                                 // Create an input element
-                                input = doc.createElement('input');
+                                input = document.createElement('input');
                                 input.setAttribute('type', 'hidden');
                                 input.setAttribute('name', x);
                                 // Does it have a value attribute?
@@ -1347,11 +1345,12 @@
                     // Append scopes from a previous session
                     // This helps keep app credentials constant,
                     // Avoiding having to keep tabs on what scopes are authorized
-                    if (session && 'scope' in session) {
-                        scope += ',' + session.scope.join(',');
+                    if (session && 'scope' in session && session.scope instanceof String) {
+                        scope += ',' + session.scope;
                     }
                     // Save in the State
-                    p.qs.state.scope = unique(scope.split(/[,\s]+/));
+                    // Convert to a string because IE, has a problem moving Arrays between windows
+                    p.qs.state.scope = unique(scope.split(/[,\s]+/)).join(',');
                     // Map replace each scope with the providers default scopes
                     p.qs.scope = scope.replace(/[^,\s]+/gi, function (m) {
                         return m in provider.scope ? provider.scope[m] : '';
@@ -1419,7 +1418,7 @@
                         // Create the OAuth Popup
                         var popup = OAuthPopup(url, opts.redirect_uri, opts.window_width || 500, opts.window_height || 500);
                         var timer = setInterval(function () {
-                                if (popup.closed) {
+                                if (popup && popup.closed) {
                                     clearInterval(timer);
                                     resolve({
                                         error: {
