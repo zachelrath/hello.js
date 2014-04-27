@@ -1,4 +1,4 @@
-/*! hellojs - v0.2.2 - 2014-04-23 */
+/*! hellojs - v0.2.2 - 2014-04-26 */
 (function (window, document, undefined) {
     var utils_merge = function merge(a, b) {
         var x, r = {};

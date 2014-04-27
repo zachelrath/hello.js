@@ -1,4 +1,4 @@
-/*! hellojs - v0.2.2 - 2014-04-23 */
+/*! hellojs - v0.2.2 - 2014-04-26 */
 (function (window, document, undefined) {
     var utils_append = function (node, attr, target) {
         var n = typeof node === 'string' ? document.createElement(node) : node;
@@ -124,7 +124,10 @@
         }
         return json;
     };
-    var utils_dataToJSON = function (domInstance, nodeListToJSON) {
+    var utils_isBinary = function (data) {
+        return 'FileList' in window && data instanceof window.FileList || 'File' in window && data instanceof window.File || 'Blob' in window && data instanceof window.Blob;
+    };
+    var utils_dataToJSON = function (domInstance, nodeListToJSON, isBinary) {
             return function (p) {
                 var data = p.data;
                 // Is data a form object
@@ -136,7 +139,7 @@
                     data = nodeListToJSON([data]);
                 }
                 // Is data a blob, File, FileList?
-                if ('File' in window && data instanceof window.File || 'Blob' in window && data instanceof window.Blob || 'FileList' in window && data instanceof window.FileList) {
+                if (isBinary(data)) {
                     // Convert to a JSON object
                     data = { 'file': data };
                 }
@@ -166,16 +169,7 @@
                 p.data = data;
                 return data;
             };
-        }(utils_domInstance, utils_nodeListToJSON);
-    var utils_diff = function (a, b) {
-        var r = [];
-        for (var i = 0; i < b.length; i++) {
-            if (this.indexOf(a, b[i]) === -1) {
-                r.push(b[i]);
-            }
-        }
-        return r;
-    };
+        }(utils_domInstance, utils_nodeListToJSON, utils_isBinary);
     var utils_indexOf = function (a, s) {
         // Do we need the hack?
         if (a.indexOf) {
@@ -188,6 +182,17 @@
         }
         return -1;
     };
+    var utils_diff = function (indexOf) {
+            return function (a, b) {
+                var r = [];
+                for (var i = 0; i < b.length; i++) {
+                    if (indexOf(a, b[i]) === -1) {
+                        r.push(b[i]);
+                    }
+                }
+                return r;
+            };
+        }(utils_indexOf);
     var utils_event = function (indexOf) {
             return function () {
                 // If this doesn't support getProtoType then we can't get prototype.events of the parent
@@ -306,18 +311,17 @@
         };
         return guid;
     };
-    var utils_hasBinary = function (domInstance) {
+    var utils_hasBinary = function (domInstance, isBinary) {
             return function (data) {
-                var w = window;
                 for (var x in data)
                     if (data.hasOwnProperty(x)) {
-                        if (domInstance('input', data[x]) && data[x].type === 'file' || 'FileList' in w && data[x] instanceof w.FileList || 'File' in w && data[x] instanceof w.File || 'Blob' in w && data[x] instanceof w.Blob) {
+                        if (domInstance('input', data[x]) && data[x].type === 'file' || isBinary(data[x])) {
                             return true;
                         }
                     }
                 return false;
             };
-        }(utils_domInstance);
+        }(utils_domInstance, utils_isBinary);
     var utils_hiddenIframe = function (append) {
             return function (url) {
                 return append('iframe', {
@@ -696,18 +700,24 @@
                 return url + (!isEmpty(params) ? (url.indexOf('?') > -1 ? '&' : '?') + param(params) : '');
             };
         }(utils_param, utils_isEmpty);
-    var utils_realPath = function (path) {
-        var location = window.location;
-        if (path.indexOf('/') === 0) {
-            path = location.protocol + '//' + location.host + path;
-        } else if (!path.match(/^https?\:\/\//)) {
-            path = (location.href.replace(/#.*/, '').replace(/\/[^\/]+$/, '/') + path).replace(/\/\.\//g, '/');
-        }
-        while (/\/[^\/]+\/\.\.\//g.test(path)) {
-            path = path.replace(/\/[^\/]+\/\.\.\//g, '/');
-        }
-        return path;
-    };
+    var utils_realPath = function () {
+            var location = window.location;
+            var regAsc = /\/[^\/]+\/\.\.\//g;
+            return function (path) {
+                if (!path) {
+                    return location.href;
+                } else if (path.indexOf('/') === 0) {
+                    path = location.protocol + (path.indexOf('//') === 0 ? path : '//' + location.host + path);
+                } else if (!path.match(/^https?\:\/\//)) {
+                    path = (location.href.replace(/#.*/, '').replace(/\/[^\/]+$/, '/') + path).replace(/\/\.\//g, '/');
+                }
+                while (regAsc.test(path)) {
+                    regAsc.lastIndex = 0;
+                    path = path.replace(regAsc, '/');
+                }
+                return path;
+            };
+        }();
     var utils_store = function () {
             //
             // LocalStorage
@@ -781,7 +791,15 @@
                 return r;
             };
         }(utils_indexOf);
-    var utils_xhr = function (isEmpty, merge) {
+    var utils_xhrHeadersToJSON = function (s) {
+        var r = {};
+        var reg = /([a-z\-]+):\s?(.*);?/gi, m;
+        while (m = reg.exec(s)) {
+            r[m[1]] = m[2];
+        }
+        return r;
+    };
+    var utils_xhr = function (isEmpty, merge, isBinary, domInstance, xhrHeadersToJSON) {
             return function (method, pathFunc, headers, data, callback) {
                 if (typeof pathFunc !== 'function') {
                     var path = pathFunc;
@@ -813,7 +831,7 @@
                             };
                         }
                     }
-                    var headers = headersToJSON(r.getAllResponseHeaders());
+                    var headers = xhrHeadersToJSON(r.getAllResponseHeaders());
                     headers.statusCode = r.status;
                     callback(json || (method !== 'DELETE' ? { error: { message: 'Could not get resource' } } : {}), headers);
                 };
@@ -837,12 +855,12 @@
                         qs = merge(qs, data);
                     }
                     data = null;
-                } else if (data && typeof data !== 'string' && !(data instanceof FormData) && !(data instanceof File) && !(data instanceof Blob)) {
+                } else if (data && typeof data !== 'string' && !(data instanceof FormData) && !isBinary(data)) {
                     // Loop through and add formData
                     var f = new FormData();
                     for (x in data)
                         if (data.hasOwnProperty(x)) {
-                            if (data[x] instanceof HTMLInputElement) {
+                            if (domInstance('input', data[x])) {
                                 if ('files' in data[x] && data[x].files.length > 0) {
                                     f.append(x, data[x].files[0]);
                                 }
@@ -874,19 +892,8 @@
                     r.send(data);
                 });
                 return r;
-                //
-                // headersToJSON
-                // Headers are returned as a string, which isn't all that great... is it?
-                function headersToJSON(s) {
-                    var r = {};
-                    var reg = /([a-z\-]+):\s?(.*);?/gi, m;
-                    while (m = reg.exec(s)) {
-                        r[m[1]] = m[2];
-                    }
-                    return r;
-                }
             };
-        }(utils_isEmpty, utils_merge);
+        }(utils_isEmpty, utils_merge, utils_isBinary, utils_domInstance, utils_xhrHeadersToJSON);
     var handler_OAuthResponseHandler = function (merge, store, param) {
             //
             // AuthCallback
@@ -3807,7 +3814,9 @@
                 }
             });
         }(hello);
-    var helloall = undefined;
+    var helloall = function (hello) {
+            return hello;
+        }(hello, modules_dropbox, modules_facebook, modules_flickr, modules_foursquare, modules_github, modules_google, modules_instagram, modules_linkedin, modules_soundcloud, modules_twitter, modules_windows, modules_yahoo);
 }(window, document));
 //
 // AMD shim to expose the HelloJS library
