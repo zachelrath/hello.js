@@ -14,8 +14,7 @@ define([
 		this.parent = {
 			events : this.events,
 			findEvents : this.findEvents,
-			parent : this.parent,
-			utils : this.utils
+			parent : this.parent
 		};
 
 		this.events = {};
@@ -80,7 +79,7 @@ define([
 			while( proto && proto.findEvents ){
 				proto.findEvents(evt, handler);
 
-				// proto = this.utils.getPrototypeOf(proto);
+				// proto = getPrototypeOf(proto);
 				proto = proto.parent;
 			}
 

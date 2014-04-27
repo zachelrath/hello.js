@@ -12,9 +12,6 @@ define([
 
 	return function(pathFunc, data, options, callback, callbackID, timeout){
 
-		var utils = this,
-			doc = document;
-
 		// The URL is a function for some cases and as such
 		// Determine its value with a callback containing the new parameters of this function.
 		if(typeof(pathFunc)!=='function'){
@@ -48,10 +45,10 @@ define([
 		var win;
 		try{
 			// IE7 hack, only lets us define the name here, not later.
-			win = doc.createElement('<iframe name="'+callbackID+'">');
+			win = document.createElement('<iframe name="'+callbackID+'">');
 		}
 		catch(e){
-			win = doc.createElement('iframe');
+			win = document.createElement('iframe');
 		}
 
 		win.name = callbackID;
@@ -80,7 +77,7 @@ define([
 			}, timeout);
 		}
 
-		doc.body.appendChild(win);
+		document.body.appendChild(win);
 
 
 		// if we are just posting a single item
@@ -125,8 +122,8 @@ define([
 			// Do If there is no defined form element, lets create one.
 			if(!form){
 				// Build form
-				form = doc.createElement('form');
-				doc.body.appendChild(form);
+				form = document.createElement('form');
+				document.body.appendChild(form);
 				newform = form;
 			}
 
@@ -155,7 +152,7 @@ define([
 					}
 
 					// Create an input element
-					input = doc.createElement('input');
+					input = document.createElement('input');
 					input.setAttribute('type', 'hidden');
 					input.setAttribute('name', x);
 
