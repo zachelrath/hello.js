@@ -34,7 +34,7 @@
 hello.on('auth.login', function(auth){
 
 	// Get Profile
-	hello.api(auth.network+':me', function(r){
+	hello(auth.network).api('me', function(r){
 		if(!r||r.error){
 			return;
 		}
@@ -42,7 +42,7 @@ hello.on('auth.login', function(auth){
 	});
 
 	// Get albums
-	hello.api(auth.network+':me/albums', function(r){
+	hello( auth.network ).api('me/albums', function(r){
 
 		if(!r||r.error){
 			console.error("Could not open albums from "+auth.network+", try resigning in");
@@ -55,7 +55,7 @@ hello.on('auth.login', function(auth){
 
 		for(var i=0;i<r.data.length;i++){
 			var o = document.createElement('option');
-			o.value = auth.network+":"+ ( r.data[i].upload_location || r.data[i].id );
+			o.value = auth.network+":"+ r.data[i].id;
 			o.innerHTML = r.data[i].name;
 			grp.appendChild(o);
 		}
@@ -66,8 +66,14 @@ hello.on('auth.login', function(auth){
 
 <script class="pre">
 function upload(){
-	hello.api(document.getElementById('albums').value, 'post', {
-		file:document.getElementById('file')
+
+	var path = document.getElementById('albums').value.split(':'), 
+		network = path[0],
+		id = path[1];
+
+	hello( network ).api( 'me/album', 'post', {
+		id : id,
+		file : document.getElementById('file')
 	}, function(r){
 		if(r.error){
 			alert(r.error.message);
