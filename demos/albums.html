@@ -26,15 +26,18 @@ img:nth-child(3n){
 }
 
 .demo{
-	height:300px;
 	max-height:500px;
 }
 .column{
 	display:inline-block;
-	height:100%;
-	overflow: auto;
 	width:33%;
 	padding:0.3%;
+}
+div.column{
+	height:300px;
+	overflow: auto;
+	background-color: #eee;
+	border: 2px solid white;
 }
 .column button{
 	width:100%;
@@ -47,10 +50,15 @@ img:nth-child(3n){
 <h2>Demo</h2>
 
 <div class="demo">
+
+	<b class="column">Provider</b>
+	<b class="column">Albums</b>
+	<b class="column">Photos</b>
+	<br />
 	<div class="column">
-		<button id="windows" onclick="getAlbums('windows')">Login Windows</button>
-		<button id="facebook" onclick="getAlbums('facebook')">Login Facebook</button>
-		<button id="google" onclick="getAlbums('google')">Login Google</button>
+		<button id="windows" onclick="getAlbums('windows')">Get Albums from Windows</button>
+		<button id="facebook" onclick="getAlbums('facebook')">Get Albums from Facebook</button>
+		<button id="google" onclick="getAlbums('google')">Get Albums from Google</button>
 	</div><div class="column" id="albums">
 	</div><div class="column" id="photos">
 	</div>
@@ -62,7 +70,7 @@ img:nth-child(3n){
 <p>Include helloJS in a script tag</p>
 <script src="../dist/hello.all.js" class="pre"></script>
 
-<p>Listener: On login authenticated. Request users profile + Albums. </p>
+<p>Setup a listener</p>
 
 <script class="pre">
 // Get User
@@ -73,7 +81,7 @@ hello.on('auth.login', function(auth){
 		if(!r||r.error){
 			return;
 		}
-		document.getElementById(auth.network).innerHTML = "Connected to "+auth.network+" as " + r.name;
+		document.getElementById(auth.network).innerHTML = "Get Albums from " + r.name + " at "+auth.network+"";
 	});
 });
 </script>
