@@ -148,7 +148,7 @@ define([
 		paging(o);
 		var r = [];
 		if("feed" in o && "entry" in o.feed){
-			var token = hello.getAuthResponse('google').access_token;
+			var token = (hello.getAuthResponse('google')||{}).access_token;
 			for(var i=0;i<o.feed.entry.length;i++){
 				var a = o.feed.entry[i],
 					pic = (a.link&&a.link.length>0)?a.link[0].href+'?access_token='+token:null;
