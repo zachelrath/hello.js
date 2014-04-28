@@ -4,7 +4,6 @@
 define(function(){
 
 	var location = window.location;
-	var regAsc = /\/[^\/]+\/\.\.\//g;
 
 	return function(path){
 
@@ -19,9 +18,11 @@ define(function(){
 			path = (location.href.replace(/#.*/,'').replace(/\/[^\/]+$/,'/') + path).replace(/\/\.\//g,'/');
 		}
 
-		while( regAsc.test(path) ){
-			regAsc.lastIndex = 0;
-			path = path.replace(regAsc, '/');
+		// Unoptimised
+		// When a regExp variable was used IE8 would fail as it did not recognise regexp.lastindex, 
+		// ... and be able to reset the position of the regexp
+		while( /\/[^\/]+\/\.\.\//g.test(path) ){
+			path = path.replace(/\/[^\/]+\/\.\.\//g, '/');
 		}
 		return path;
 	};
