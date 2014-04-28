@@ -777,7 +777,9 @@ hello.api = function(){
 	// Wrappers to add additional functionality to existing functions
 	//
 	// Change for into a data object
-	dataToJSON(p);
+	if(p.data){
+		dataToJSON(p);
+	}
 
 
 	// Reference arguments
@@ -1021,7 +1023,7 @@ hello.api = function(){
 				}
 
 				// Does this provider have a custom method?
-				if("api" in o && o.api( url, p, {access_token:session.access_token}, callback ) ){
+				if("api" in o && o.api( url, p, (session && session.access_token ? {access_token:session.access_token} : {}), callback ) ){
 					return;
 				}
 
