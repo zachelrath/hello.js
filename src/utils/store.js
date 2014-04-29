@@ -47,15 +47,15 @@ define(function(){
 		// Local storage
 		var json = JSON.parse(localStorage.getItem('hello')) || {};
 
-		if(name && typeof(value) === 'undefined'){
-			return json[name];
+		if( name && value === undefined ){
+			return json[name] || null;
 		}
-		else if(name && value === ''){
+		else if(name && value === null){
 			try{
 				delete json[name];
 			}
 			catch(e){
-				json[name]=null;
+				json[name] = null;
 			}
 		}
 		else if(name){
@@ -67,7 +67,7 @@ define(function(){
 
 		localStorage.setItem('hello', JSON.stringify(json));
 
-		return json;
+		return json || null;
 	};
 
 });
