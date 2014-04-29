@@ -4,13 +4,13 @@
 //
 define([
 	'./isEmpty',
-	'./merge',
+	'./extend',
 	'./isBinary',
 	'./domInstance',
 	'./xhrHeadersToJSON'
 ],function(
 	isEmpty,
-	merge,
+	extend,
 	isBinary,
 	domInstance,
 	xhrHeadersToJSON
@@ -71,7 +71,7 @@ define([
 		// Should we add the query to the URL?
 		if(method === 'GET'||method === 'DELETE'){
 			if(!isEmpty(data)){
-				qs = merge(qs, data);
+				extend(qs, data);
 			}
 			data = null;
 		}

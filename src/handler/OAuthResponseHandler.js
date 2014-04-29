@@ -4,10 +4,12 @@
 // Saving credentials which are shared from the window.location object
 //
 define([
+	'../utils/extend',
 	'../utils/merge',
 	'../utils/store',
 	'../utils/param'
 ],function(
+	extend,
 	merge,
 	store,
 	param
@@ -111,7 +113,7 @@ define([
 			// e.g. p.state = 'facebook.page';
 			try{
 				var a = JSON.parse(p.state);
-				p = merge(p, a);
+				extend(p, a);
 			}catch(e){
 				console.error("Could not decode state parameter");
 			}
