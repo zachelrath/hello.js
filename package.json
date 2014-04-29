@@ -24,7 +24,7 @@
     "url": "https://github.com/MrSwitch/hello.js/issues"
   },
   "scripts": {
-    "test": "karma start"
+    "test": "grunt test"
   },
   "devDependencies": {
     "shunt": "^0.1.2",
