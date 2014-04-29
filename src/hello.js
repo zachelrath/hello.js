@@ -191,18 +191,20 @@ extend( hello, {
 
 		//
 		// merge services if there already exists some
-		this.services = merge(this.services, services);
+		extend(this.services, services);
 
 		//
 		// Format the incoming
 		for( x in this.services ){if(this.services.hasOwnProperty(x)){
-			this.services[x].scope = this.services[x].scope || {};
+			// cast scopes as an object
+			extend( this.services[x], {scope:{}} );
 		}}
 
 		//
-		// Update the default settings with this one.
+		// Are bespoke options provided?
 		if(options){
-			this.settings = merge(this.settings, options);
+			// Update the current settings
+			extend(this.settings, options);
 
 			// Do this immediatly incase the browser changes the current path.
 			if("redirect_uri" in options){
@@ -504,10 +506,10 @@ extend( hello, {
 			var callback = function(opts){
 
 				// Remove from the store
-				store(p.name,'');
+				store(p.name,null);
 
 				// Emit events by default
-				self.emitAfter("complete logout success auth.logout auth", merge( {network:p.name}, opts || {} ) );
+				self.emitAfter( "complete logout success auth.logout auth", merge( {network:p.name}, opts || {} ) );
 			};
 
 			//
@@ -578,7 +580,7 @@ extend( hello, {
 			return null;
 		}
 
-		return store(service) || null;
+		return store(service);
 	},
 
 
@@ -969,7 +971,7 @@ hello.api = function(){
 						qs_handler(_qs);
 					}
 					else{
-						_qs = merge(_qs, qs_handler);
+						extend(_qs, qs_handler);
 					}
 				}
 
@@ -1042,8 +1044,7 @@ hello.api = function(){
 				// Make the call
 				else{
 
-					_qs = merge(_qs,p.data);
-					_qs.callback = p.callbackID;
+					extend( _qs, p.data || {}, { callback : p.callbackID } );
 
 					jsonp( format_url, callback, p.callbackID, self.settings.timeout );
 				}
