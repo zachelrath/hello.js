@@ -5,7 +5,7 @@ define([
 	'../hello',
 	'../utils/hasBinary',
 	'../utils/globalEvent',
-	'../utils/hiddeniframe',
+	'../utils/hiddenIframe',
 	'../utils/store',
 	'../utils/param'
 
