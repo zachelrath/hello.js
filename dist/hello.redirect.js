@@ -1,26 +1,28 @@
-/*! hellojs - v0.2.2 - 2014-04-27 */
+/*! hellojs - v0.2.2 - 2014-05-14 */
 (function (window, document, undefined) {
-    var utils_merge = function merge(a, b) {
-        var x, r = {};
-        if (typeof a === 'object' && typeof b === 'object') {
-            for (x in a) {
-                //if(a.hasOwnProperty(x)){
-                r[x] = a[x];
-                if (x in b) {
-                    r[x] = merge(a[x], b[x]);
+    var utils_extend = function extend(r) {
+        // Get the arguments as an array but ommit the initial item
+        var args = Array.prototype.slice.call(arguments, 1);
+        for (var i = 0; i < args.length; i++) {
+            var a = args[i];
+            if (r instanceof Object && a instanceof Object && r !== a) {
+                for (var x in a) {
+                    //if(a.hasOwnProperty(x)){
+                    r[x] = extend(r[x], a[x]);
                 }
+            } else {
+                r = a;
             }
-            for (x in b) {
-                //if(b.hasOwnProperty(x)){
-                if (!(x in a)) {
-                    r[x] = b[x];
-                }
-            }
-        } else {
-            r = b;
         }
         return r;
     };
+    var utils_merge = function (extend) {
+            return function () {
+                var args = Array.prototype.slice.call(arguments);
+                args.unshift({});
+                return extend.apply(null, args);
+            };
+        }(utils_extend);
     var utils_store = function () {
             //
             // LocalStorage
@@ -61,9 +63,9 @@
             return function (name, value, days) {
                 // Local storage
                 var json = JSON.parse(localStorage.getItem('hello')) || {};
-                if (name && typeof value === 'undefined') {
-                    return json[name];
-                } else if (name && value === '') {
+                if (name && value === undefined) {
+                    return json[name] || null;
+                } else if (name && value === null) {
                     try {
                         delete json[name];
                     } catch (e) {
@@ -75,7 +77,7 @@
                     return json;
                 }
                 localStorage.setItem('hello', JSON.stringify(json));
-                return json;
+                return json || null;
             };
         }();
     var utils_param = function (s) {
@@ -103,7 +105,7 @@
             return a.join('&');
         }
     };
-    var handler_OAuthResponseHandler = function (merge, store, param) {
+    var handler_OAuthResponseHandler = function (extend, merge, store, param) {
             //
             // AuthCallback
             // Trigger a callback to authenticate
@@ -182,7 +184,7 @@
                     // e.g. p.state = 'facebook.page';
                     try {
                         var a = JSON.parse(p.state);
-                        p = merge(p, a);
+                        extend(p, a);
                     } catch (e) {
                         console.error('Could not decode state parameter');
                     }
@@ -231,7 +233,7 @@
                     relocate(path);
                 }
             };
-        }(utils_merge, utils_store, utils_param);
+        }(utils_extend, utils_merge, utils_store, utils_param);
     var helloredirect = function (OAuthResponseHandler) {
             OAuthResponseHandler(window, window.opener || window.parent);
         }(handler_OAuthResponseHandler);

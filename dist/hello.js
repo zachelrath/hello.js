@@ -1,4 +1,4 @@
-/*! hellojs - v0.2.2 - 2014-04-27 */
+/*! hellojs - v0.2.2 - 2014-05-14 */
 (function (window, document, undefined) {
     var utils_append = function (node, attr, target) {
         var n = typeof node === 'string' ? document.createElement(node) : node;
@@ -98,7 +98,9 @@
         var test = 'HTML' + (type || '').replace(/^[a-z]/, function (m) {
                 return m.toUpperCase();
             }) + 'Element';
-        if (window[test]) {
+        if (!data) {
+            throw 'domInstance: No Data';
+        } else if (window[test]) {
             return data instanceof window[test];
         } else if (window.Element) {
             return data instanceof window.Element && (!type || data.tagName && data.tagName.toLowerCase() === type);
@@ -195,6 +197,7 @@
         }(utils_indexOf);
     var utils_event = function (indexOf) {
             return function () {
+                var separator = /[\s\,]+/;
                 // If this doesn't support getProtoType then we can't get prototype.events of the parent
                 // So lets get the current instance events, and add those to a parent property
                 this.parent = {
@@ -210,7 +213,7 @@
                 //
                 this.on = function (evt, callback) {
                     if (callback && typeof callback === 'function') {
-                        var a = evt.split(/[\s\,]+/);
+                        var a = evt.split(separator);
                         for (var i = 0; i < a.length; i++) {
                             // Has this event already been fired on this instance?
                             this.events[a[i]] = [callback].concat(this.events[a[i]] || []);
@@ -226,7 +229,7 @@
                 this.off = function (evt, callback) {
                     this.findEvents(evt, function (name, index) {
                         if (!callback || this.events[name][index] === callback) {
-                            this.events[name].splice(index, 1);
+                            this.events[name][index] = null;
                         }
                     });
                     return this;
@@ -242,14 +245,15 @@
                     // Handler
                     var handler = function (name, index) {
                         // Replace the last property with the event name
-                        args[args.length - 1] = name;
+                        args[args.length - 1] = name === '*' ? evt.split(separator)[0] : name;
                         // Trigger
                         this.events[name][index].apply(this, args);
                     };
                     // Find the callbacks which match the condition and call
                     var proto = this;
                     while (proto && proto.findEvents) {
-                        proto.findEvents(evt, handler);
+                        // Find events which match
+                        proto.findEvents(evt + ',*', handler);
                         // proto = getPrototypeOf(proto);
                         proto = proto.parent;
                     }
@@ -274,13 +278,16 @@
                     return this.on('complete', callback);
                 };
                 this.findEvents = function (evt, callback) {
-                    var a = evt.split(/[\s\,]+/);
+                    var a = evt.split(separator);
                     for (var name in this.events) {
                         if (this.events.hasOwnProperty(name)) {
                             if (indexOf(a, name) > -1) {
                                 for (var i = 0; i < this.events[name].length; i++) {
-                                    // Emit on the local instance of this
-                                    callback.call(this, name, i);
+                                    // Does the event handler exist?
+                                    if (this.events[name][i]) {
+                                        // Emit on the local instance of this
+                                        callback.call(this, name, i);
+                                    }
                                 }
                             }
                         }
@@ -288,10 +295,21 @@
                 };
             };
         }(utils_indexOf);
-    var utils_extend = function (a, b) {
-        for (var x in b) {
-            a[x] = b[x];
+    var utils_extend = function extend(r) {
+        // Get the arguments as an array but ommit the initial item
+        var args = Array.prototype.slice.call(arguments, 1);
+        for (var i = 0; i < args.length; i++) {
+            var a = args[i];
+            if (r instanceof Object && a instanceof Object && r !== a) {
+                for (var x in a) {
+                    //if(a.hasOwnProperty(x)){
+                    r[x] = extend(r[x], a[x]);
+                }
+            } else {
+                r = a;
+            }
         }
+        return r;
     };
     var utils_globalEvent = function (callback, guid) {
         // If the guid has not been supplied then create a new one.
@@ -438,27 +456,13 @@
                 });
             };
         }(utils_append, utils_globalEvent);
-    var utils_merge = function merge(a, b) {
-        var x, r = {};
-        if (typeof a === 'object' && typeof b === 'object') {
-            for (x in a) {
-                //if(a.hasOwnProperty(x)){
-                r[x] = a[x];
-                if (x in b) {
-                    r[x] = merge(a[x], b[x]);
-                }
-            }
-            for (x in b) {
-                //if(b.hasOwnProperty(x)){
-                if (!(x in a)) {
-                    r[x] = b[x];
-                }
-            }
-        } else {
-            r = b;
-        }
-        return r;
-    };
+    var utils_merge = function (extend) {
+            return function () {
+                var args = Array.prototype.slice.call(arguments);
+                args.unshift({});
+                return extend.apply(null, args);
+            };
+        }(utils_extend);
     var utils_objectCreate = function () {
             if (Object.create) {
                 return Object.create;
@@ -700,7 +704,6 @@
         }(utils_param, utils_isEmpty);
     var utils_realPath = function () {
             var location = window.location;
-            var regAsc = /\/[^\/]+\/\.\.\//g;
             return function (path) {
                 if (!path) {
                     return location.href;
@@ -709,9 +712,11 @@
                 } else if (!path.match(/^https?\:\/\//)) {
                     path = (location.href.replace(/#.*/, '').replace(/\/[^\/]+$/, '/') + path).replace(/\/\.\//g, '/');
                 }
-                while (regAsc.test(path)) {
-                    regAsc.lastIndex = 0;
-                    path = path.replace(regAsc, '/');
+                // Unoptimised
+                // When a regExp variable was used IE8 would fail as it did not recognise regexp.lastindex, 
+                // ... and be able to reset the position of the regexp
+                while (/\/[^\/]+\/\.\.\//g.test(path)) {
+                    path = path.replace(/\/[^\/]+\/\.\.\//g, '/');
                 }
                 return path;
             };
@@ -756,9 +761,9 @@
             return function (name, value, days) {
                 // Local storage
                 var json = JSON.parse(localStorage.getItem('hello')) || {};
-                if (name && typeof value === 'undefined') {
-                    return json[name];
-                } else if (name && value === '') {
+                if (name && value === undefined) {
+                    return json[name] || null;
+                } else if (name && value === null) {
                     try {
                         delete json[name];
                     } catch (e) {
@@ -770,7 +775,7 @@
                     return json;
                 }
                 localStorage.setItem('hello', JSON.stringify(json));
-                return json;
+                return json || null;
             };
         }();
     var utils_unique = function (indexOf) {
@@ -797,7 +802,7 @@
         }
         return r;
     };
-    var utils_xhr = function (isEmpty, merge, isBinary, domInstance, xhrHeadersToJSON) {
+    var utils_xhr = function (isEmpty, extend, isBinary, domInstance, xhrHeadersToJSON) {
             return function (method, pathFunc, headers, data, callback) {
                 if (typeof pathFunc !== 'function') {
                     var path = pathFunc;
@@ -850,7 +855,7 @@
                 // Should we add the query to the URL?
                 if (method === 'GET' || method === 'DELETE') {
                     if (!isEmpty(data)) {
-                        qs = merge(qs, data);
+                        extend(qs, data);
                     }
                     data = null;
                 } else if (data && typeof data !== 'string' && !(data instanceof FormData) && !isBinary(data)) {
@@ -891,8 +896,8 @@
                 });
                 return r;
             };
-        }(utils_isEmpty, utils_merge, utils_isBinary, utils_domInstance, utils_xhrHeadersToJSON);
-    var handler_OAuthResponseHandler = function (merge, store, param) {
+        }(utils_isEmpty, utils_extend, utils_isBinary, utils_domInstance, utils_xhrHeadersToJSON);
+    var handler_OAuthResponseHandler = function (extend, merge, store, param) {
             //
             // AuthCallback
             // Trigger a callback to authenticate
@@ -971,7 +976,7 @@
                     // e.g. p.state = 'facebook.page';
                     try {
                         var a = JSON.parse(p.state);
-                        p = merge(p, a);
+                        extend(p, a);
                     } catch (e) {
                         console.error('Could not decode state parameter');
                     }
@@ -1020,7 +1025,7 @@
                     relocate(path);
                 }
             };
-        }(utils_merge, utils_store, utils_param);
+        }(utils_extend, utils_merge, utils_store, utils_param);
     var utils_parseURL = function (url) {
         var a = document.createElement('a');
         a.href = url;
@@ -1213,18 +1218,20 @@
                     }
                     //
                     // merge services if there already exists some
-                    this.services = merge(this.services, services);
+                    extend(this.services, services);
                     //
                     // Format the incoming
                     for (x in this.services) {
                         if (this.services.hasOwnProperty(x)) {
-                            this.services[x].scope = this.services[x].scope || {};
+                            // cast scopes as an object
+                            extend(this.services[x], { scope: {} });
                         }
                     }
                     //
-                    // Update the default settings with this one.
+                    // Are bespoke options provided?
                     if (options) {
-                        this.settings = merge(this.settings, options);
+                        // Update the current settings
+                        extend(this.settings, options);
                         // Do this immediatly incase the browser changes the current path.
                         if ('redirect_uri' in options) {
                             this.settings.redirect_uri = realPath(options.redirect_uri);
@@ -1465,7 +1472,7 @@
                         // Define the callback
                         var callback = function (opts) {
                             // Remove from the store
-                            store(p.name, '');
+                            store(p.name, null);
                             // Emit events by default
                             self.emitAfter('complete logout success auth.logout auth', merge({ network: p.name }, opts || {}));
                         };
@@ -1530,7 +1537,7 @@
                         });
                         return null;
                     }
-                    return store(service) || null;
+                    return store(service);
                 },
                 //
                 // Events
@@ -1675,7 +1682,9 @@
                 // Wrappers to add additional functionality to existing functions
                 //
                 // Change for into a data object
-                dataToJSON(p);
+                if (p.data) {
+                    dataToJSON(p);
+                }
                 // Reference arguments
                 self.args = p;
                 // method
@@ -1822,7 +1831,7 @@
                                 if (typeof qs_handler === 'function') {
                                     qs_handler(_qs);
                                 } else {
-                                    _qs = merge(_qs, qs_handler);
+                                    extend(_qs, qs_handler);
                                 }
                             }
                             var path = qs(url, _qs || {});
@@ -1863,7 +1872,7 @@
                                 o.jsonp(p, _qs);
                             }
                             // Does this provider have a custom method?
-                            if ('api' in o && o.api(url, p, { access_token: session.access_token }, callback)) {
+                            if ('api' in o && o.api(url, p, session && session.access_token ? { access_token: session.access_token } : {}, callback)) {
                                 return;
                             }
                             // Is method still a post?
@@ -1875,8 +1884,7 @@
                                 _qs.state = JSON.stringify({ callback: p.callbackID });
                                 post(format_url, p.data, 'form' in o ? o.form(p) : null, callback, p.callbackID, self.settings.timeout);
                             } else {
-                                _qs = merge(_qs, p.data);
-                                _qs.callback = p.callbackID;
+                                extend(_qs, p.data || {}, { callback: p.callbackID });
                                 jsonp(format_url, callback, p.callbackID, self.settings.timeout);
                             }
                         }
