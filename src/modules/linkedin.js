@@ -126,4 +126,5 @@ hello.init({
 	}
 });
 
+	return hello;
 });

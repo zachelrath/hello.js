@@ -738,4 +738,5 @@ define([
 			}
 		}
 	});
+	return hello;
 });

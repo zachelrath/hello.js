@@ -81,4 +81,5 @@ hello.init({
 	}
 });
 
+	return hello;
 });

@@ -117,4 +117,5 @@ hello.init({
 		xhr : false
 	}
 });
+	return hello;
 });

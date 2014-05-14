@@ -175,4 +175,5 @@ hello.init({
 	}
 });
 
+	return hello;
 });

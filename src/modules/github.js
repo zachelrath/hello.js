@@ -72,4 +72,5 @@ hello.init({
 	}
 });
 
+	return hello;
 });

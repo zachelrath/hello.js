@@ -144,4 +144,5 @@ hello.init({
 	}
 });
 
+	return hello;
 });

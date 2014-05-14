@@ -190,4 +190,5 @@ hello.init({
 });
 
 
+	return hello;
 });

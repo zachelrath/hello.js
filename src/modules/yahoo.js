@@ -125,4 +125,5 @@ hello.init({
 	}
 });
 
+	return hello;
 });
