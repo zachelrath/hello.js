@@ -153,6 +153,13 @@ hello.init({
 			}
 		},
 		xhr : function(p){
+
+			// If Twitter were to permit CORS, Access Control headers
+			// The post data could be handled directly from client to Twitter. Like so...
+			// if( p.method==='post' && p.data ){
+			//		p.proxy = 'return';
+			// }
+
 			// Rely on the proxy for non-GET requests.
 			return (p.method!=='get');
 		}

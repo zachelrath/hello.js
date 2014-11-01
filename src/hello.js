@@ -2203,7 +2203,7 @@ hello.utils.extend( hello.utils, {
 				delete p.query.access_token;
 
 				// Enfore use of Proxy
-				p.proxy = true;
+				p.proxy = p.proxy || true;
 			}
 
 
@@ -2223,14 +2223,38 @@ hello.utils.extend( hello.utils, {
 			// Used for signing OAuth1
 			// And circumventing services without Access-Control Headers
 			if( p.proxy ){
+
+				// Proxy defines whether to return the signed request url, redirect, or proxy aka handle the request internally
+				if( p.proxy === true ){
+					// The default depends on whether the request can not be run as JSONP (assumes every GET request can be shimmed with JSONP)
+					p.proxy = p.method.toLowerCase() === 'get' ? 'redirect' : 'proxy';
+				}
+
 				// Use the proxy as a path
 				path = utils.qs( p.oauth_proxy, {
 					path : path,
 					access_token : sign||'', // This will prompt the request to be signed as though it is OAuth1
-					then : (p.method.toLowerCase() === 'get' ? 'redirect' : 'proxy'),
+					then : p.proxy,
 					method : p.method.toLowerCase(),
 					suppress_response_codes : true
 				});
+
+			}
+
+
+			// Optimisation
+			// Make a preflight request to get the path?
+
+			if( p.proxy === 'return' ){
+
+				hello.utils.request({
+					method : 'get',
+					url : path
+				}, function(path){
+					callback(path);
+				});
+
+				return;
 			}
 
 			callback( path );
