@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<link rel="stylesheet" href="/adorn/adorn.css"/>
+<script src="/adorn/adorn.js" async></script>
+<script src="client_ids.js"></script>
+
+<title>hello( box )</title>
+<h1>hello( box )</h1>
+
+<button onclick="login();" id="profile">Login Box</button>
+
+<script src="../src/hello.js" class="pre"></script>
+<script src="../src/hello.then.js" class="pre"></script>
+<script src="../src/modules/box.js" class="pre"></script>
+
+<script class="pre">
+
+var profile = document.getElementById( 'profile' );
+
+function login(){
+
+	var box = hello('box');
+	
+	box
+	.login()
+	.then(function(){
+		return box.api('me')
+	})
+	.then(function(r){
+		
+		profile.innerHTML = "<img src='"+ r.thumbnail + "' width=24/>Connected to Box.com as " + r.name;
+
+	}, console.error.bind(console));
+
+}
+</script>
+
+<p>Initiate box client</p>
+
+<script class="pre">
+hello.init({
+	box : BOX_CLIENT_ID
+},{
+	redirect_uri:'../redirect.html',
+	response_type:'code'
+});
+</script>
