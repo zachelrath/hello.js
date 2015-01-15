@@ -6,6 +6,15 @@ define(['unit/modules/helper'], function (helper) {
 
     var tests = [
       {
+        network: "box",
+        expect: {
+          id: '197571718',
+          name: "Jane McGee",
+          thumbnail: "https://app.box.com/api/avatar/large/197571718"
+        },
+        errorExpect: false
+      },
+      {
         network: "dropbox",
         expect: {
           id: 374434467,
