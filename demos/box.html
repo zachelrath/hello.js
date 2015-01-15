@@ -6,6 +6,22 @@
 <title>hello( box )</title>
 <h1>hello( box )</h1>
 
+<script>
+if(document.location.href.indexOf('https://')!==0){
+	document.body.appendChild((function(){
+		var a = document.createElement('a');
+		a.href = document.location.href.replace('http://', 'https://');
+		a.innerHTML = "Launch page with secure protocol - https://";
+		return a;
+	})());
+}
+</script>
+
+<blockquote>
+	Box.com only provides authentication from apps which are using HTTPS. <a href="https://developers.box.com/docs/#api-basics">See Box.com API documentation</a>
+</blockquote>
+
+
 <button onclick="login();" id="profile">Login Box</button>
 
 <script src="../src/hello.js" class="pre"></script>
@@ -44,3 +60,4 @@ hello.init({
 	response_type:'code'
 });
 </script>
+
