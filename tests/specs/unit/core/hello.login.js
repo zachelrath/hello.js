@@ -260,6 +260,32 @@ define([
 				hello.login('test_delimit_scope');
 			});
 
+			it('should use space as default delimiter to separate multiple scopes', function(done) {
+
+				var basicScope = 'read_user,read_bikes';
+
+				hello.init({
+					test_delimit_scope_default_behavior: {
+						oauth: {
+							auth: 'https://testdemo/access',
+							version: 2
+						},
+						scope: {
+							basic: basicScope
+						}
+					}
+				});
+
+				var spy = sinon.spy(function(url, name, optins) {
+					expect(url).to.contain(basicScope.replace(/[\+\,\s]/, ' '));
+					done();
+				});
+
+				utils.popup = spy;
+
+				hello.login('test_delimit_scope_default_behavior');
+			});
+
 			it('should space encode the delimiter of multiple response_type\'s', function(done) {
 
 				var opts = {

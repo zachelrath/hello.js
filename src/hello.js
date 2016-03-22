@@ -320,7 +320,8 @@ hello.utils.extend(hello, {
 		scope = utils.unique(scope).filter(filterEmpty);
 
 		// Join with the expected scope delimiter into a string
-		p.qs.scope = scope.join(provider.scope_delim || ',');
+		// Use space as default delimiter
+		p.qs.scope = scope.join(provider.scope_delim || ' ');
 
 		// Is the user already signed in with the appropriate scopes, valid access_token?
 		if (opts.force === false) {
